@@ -157,6 +157,25 @@ function resetDone() {
   });
 }
 
+const RULES_KEY = 'rules:month';
+
+/** 月表示のルール（タイトルに含む言葉の一覧）。スマホと PC で共有するので UserProperties に置く */
+function getRules(): string[] {
+  try {
+    const v = JSON.parse(PropertiesService.getUserProperties().getProperty(RULES_KEY) || '[]');
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function saveRules(rules: unknown) {
+  if (!Array.isArray(rules) || rules.some((x) => typeof x !== 'string') || rules.length > 50)
+    throw new Error('invalid rules');
+  PropertiesService.getUserProperties().setProperty(RULES_KEY, JSON.stringify(rules));
+  return true;
+}
+
 function isBooked_(cals: Calendar[], title: string, from: Date, to: Date) {
   for (let i = 0; i < cals.length; i++) {
     const hits = cals[i].getEvents(from, to, { search: title });

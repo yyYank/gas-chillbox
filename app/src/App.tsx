@@ -1,7 +1,9 @@
 import { type CSSProperties, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Day } from './components/Day'
+import { Month } from './components/Month'
 import { loadCache, saveCache } from './lib/cache'
 import { call } from './lib/gas'
+import { addRule, monthRange } from './lib/month'
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, stepFontScale } from './lib/settings'
 import { addDays, dayType, md, pageCount, pageDays, sod, WD } from './lib/time'
 import type { Duties, Ev, InitRes, Settings } from './lib/types'
@@ -22,6 +24,12 @@ export function App() {
   const [toast, setToast] = useState('')
   const [panelOpen, setPanelOpen] = useState(false)
   const loadingMore = useRef(false)
+  // 月表示：ルールは GAS 側に保存。月ごとの予定は1日から末日まで別に読む
+  const [rules, setRules] = useState<string[] | null>(null)
+  const [ruleInput, setRuleInput] = useState('')
+  const [monthEvents, setMonthEvents] = useState<Record<number, Ev[]>>({})
+  const [monthPages, setMonthPages] = useState(3)
+  const monthLoading = useRef(new Set<number>())
 
   useEffect(() => setSettings(loadSettings()), [])
 
@@ -104,6 +112,10 @@ export function App() {
     const w = worldRef.current
     if (!w) return
     const view = settings.view
+    if (view === 'month') {
+      if (w.scrollLeft + w.clientWidth * 2 > w.scrollWidth) setMonthPages((n) => n + 1)
+      return
+    }
     if (view === 'day') setIndex(Math.round(w.scrollLeft / dayW()))
     else {
       // 複数日の表示は1画面＝1ページ。ズームは効かないので画面幅で割り、ページ先頭の日を指す
@@ -112,6 +124,40 @@ export function App() {
     }
     if (w.scrollLeft + w.clientWidth * 4 > w.scrollWidth) loadMore()
   }, [dayW, loadMore, settings.view, today])
+
+  // 月表示に入ったらルールと、見えている月とその先の予定を読む
+  useEffect(() => {
+    if (settings.view !== 'month') return
+    if (rules === null)
+      call<string[]>('getRules').then(setRules, (err) => {
+        setRules([])
+        showToast('ルールを読み込めませんでした')
+        console.error(err)
+      })
+    for (let p = 0; p < monthPages; p++) {
+      const { start, days: n } = monthRange(today, p)
+      if (monthEvents[start] || monthLoading.current.has(start)) continue
+      monthLoading.current.add(start)
+      call<Ev[]>('getDays', [start, n]).then(
+        (evs) => setMonthEvents((prev) => ({ ...prev, [start]: evs })),
+        (err) => {
+          monthLoading.current.delete(start)
+          showToast('読み込めませんでした')
+          console.error(err)
+        },
+      )
+    }
+  }, [settings.view, rules, monthPages, monthEvents, today, showToast])
+
+  const changeRules = (next: string[]) => {
+    const prev = rules ?? []
+    setRules(next)
+    call('saveRules', [next]).then(undefined, (err) => {
+      setRules(prev)
+      showToast('ルールを保存できませんでした')
+      console.error(err)
+    })
+  }
 
   useLayoutEffect(() => {
     document.documentElement.style.setProperty('--zoom', String(settings.zoom))
@@ -290,6 +336,7 @@ export function App() {
                   ['five', '5日'],
                   ['weekdays', '平日'],
                   ['week', '1週間'],
+                  ['month', '月'],
                 ] as const
               ).map(([v, label]) => (
                 <button
@@ -351,6 +398,40 @@ export function App() {
         </div>
       )}
 
+      {view === 'month' && (
+        <form
+          id="rules"
+          onSubmit={(e) => {
+            e.preventDefault()
+            const next = addRule(rules ?? [], ruleInput)
+            if (next !== rules) changeRules(next)
+            setRuleInput('')
+          }}
+        >
+          <span className="label">含む</span>
+          {(rules ?? []).map((r) => (
+            <button
+              key={r}
+              type="button"
+              className="rule interactive"
+              aria-label={`ルール「${r}」を消す`}
+              onClick={() => changeRules((rules ?? []).filter((x) => x !== r))}
+            >
+              {r} <span aria-hidden="true">×</span>
+            </button>
+          ))}
+          <input
+            value={ruleInput}
+            onChange={(e) => setRuleInput(e.target.value)}
+            placeholder="言葉を追加"
+            aria-label="ルールに足す言葉"
+          />
+          <button type="submit" className="add interactive" disabled={!ruleInput.trim()}>
+            追加
+          </button>
+        </form>
+      )}
+
       <main
         id="world"
         className={week ? 'week' : settings.zoom > 1 ? 'zoomed' : undefined}
@@ -358,15 +439,25 @@ export function App() {
         ref={worldRef}
         onScroll={onScroll}
       >
-        {view !== 'day'
-          ? Array.from({ length: pageCount(view, today, days) }, (_, p) => pageDays(view, today, p)).map(
-              (ds) => (
-                <div key={ds[0]} className="week-page">
-                  {ds.map((d) => dayOf(d, true))}
-                </div>
-              ),
-            )
-          : Array.from({ length: days }, (_, i) => dayOf(addDays(today, i), false))}
+        {view === 'month'
+          ? Array.from({ length: monthPages }, (_, p) => monthRange(today, p)).map(({ start }) => (
+              <Month
+                key={start}
+                start={start}
+                events={rules === null ? undefined : monthEvents[start]}
+                rules={rules ?? []}
+                onToast={showToast}
+              />
+            ))
+          : view !== 'day'
+            ? Array.from({ length: pageCount(view, today, days) }, (_, p) => pageDays(view, today, p)).map(
+                (ds) => (
+                  <div key={ds[0]} className="week-page">
+                    {ds.map((d) => dayOf(d, true))}
+                  </div>
+                ),
+              )
+            : Array.from({ length: days }, (_, i) => dayOf(addDays(today, i), false))}
       </main>
 
       {loading && (

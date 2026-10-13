@@ -25,8 +25,13 @@ describe('loadSettings の表示モード', () => {
     expect(loadSettings().view).toBe('weekdays')
   })
 
-  it('知らない値が保存されていたら day に戻す', () => {
+  it('保存された月表示（month）を読み戻せる', () => {
     stubSaved(JSON.stringify({ view: 'month' }))
+    expect(loadSettings().view).toBe('month')
+  })
+
+  it('知らない値が保存されていたら day に戻す', () => {
+    stubSaved(JSON.stringify({ view: 'year' }))
     expect(loadSettings().view).toBe('day')
   })
 })

@@ -57,7 +57,7 @@ export function dayType(ds: number, events: Ev[]): DayType {
 }
 
 /** 複数日を縦に並べる表示で、page ページ目に並べる日の始まり */
-export function pageDays(view: Exclude<View, 'day'>, today: number, page: number): number[] {
+export function pageDays(view: Exclude<View, 'day' | 'month'>, today: number, page: number): number[] {
   if (view === 'week') return weekDays(today, page)
   if (view === 'five') return Array.from({ length: 5 }, (_, i) => addDays(today, page * 5 + i))
   // 平日：今週の月曜から。土日なら来週の月曜から
@@ -67,7 +67,7 @@ export function pageDays(view: Exclude<View, 'day'>, today: number, page: number
 }
 
 /** 読み込んだ日数の中に最後の日が収まるページの数（読み込み前でも1ページは描く） */
-export function pageCount(view: Exclude<View, 'day'>, today: number, days: number): number {
+export function pageCount(view: Exclude<View, 'day' | 'month'>, today: number, days: number): number {
   const end = addDays(today, days)
   let n = 0
   while (pageDays(view, today, n)[view === 'week' ? 6 : 4] < end) n++

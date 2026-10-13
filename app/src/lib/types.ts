@@ -36,4 +36,4 @@ export interface Settings {
   fontScale: number
 }
 
-export type View = 'day' | 'five' | 'weekdays' | 'week'
+export type View = 'day' | 'five' | 'weekdays' | 'week' | 'month'

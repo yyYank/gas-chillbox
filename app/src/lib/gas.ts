@@ -71,7 +71,14 @@ function mockDuties(): Duties {
   }
 }
 
-function mock(fn: string, args: unknown[]): InitRes | Ev[] | boolean {
+let mockRules: string[] = ['飲み']
+
+function mock(fn: string, args: unknown[]): InitRes | Ev[] | string[] | boolean {
+  if (fn === 'getRules') return mockRules
+  if (fn === 'saveRules') {
+    mockRules = args[0] as string[]
+    return true
+  }
   if (fn === 'getInit') {
     return { events: mockDays(args[0] as number, args[1] as number), duties: mockDuties() }
   }
