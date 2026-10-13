@@ -1,0 +1,24 @@
+{
+  "name": "gas-chillbox",
+  "private": true,
+  "description": "Googleカレンダーを DB にした横スクロール型ビューア（GAS）",
+  "type": "module",
+  "packageManager": "pnpm@10.28.0",
+  "scripts": {
+    "login": "clasp login",
+    "setup": "node scripts/setup.mjs viewer gas-chillbox",
+    "push": "clasp -P viewer push -f",
+    "watch": "clasp -P viewer push -f --watch",
+    "deploy": "node scripts/deploy.mjs viewer",
+    "open": "clasp -P viewer open-script",
+    "open:app": "clasp -P viewer open-web-app",
+    "logs": "clasp -P viewer tail-logs",
+    "check": "node --check viewer/src/Code.js"
+  },
+  "devDependencies": {
+    "@google/clasp": "3.4.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
