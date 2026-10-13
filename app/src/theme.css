@@ -82,6 +82,14 @@
 .interactive:active {
   transform: scale(0.96);
 }
+/* タップやクリックでは枠を出さず、キーボード操作のときだけ出す */
+.interactive:focus:not(:focus-visible) {
+  outline: none;
+}
+.interactive:focus-visible {
+  outline: 2px solid rgb(var(--accent));
+  outline-offset: 1px;
+}
 
 @media (prefers-reduced-motion: reduce) {
   *,

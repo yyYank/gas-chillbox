@@ -626,6 +626,8 @@ button {
 }
 
 #toast {
+  /* 予定のバーや札より必ず手前に出す */
+  z-index: 100;
   position: fixed;
   left: 50%;
   bottom: calc(16px + env(safe-area-inset-bottom));
