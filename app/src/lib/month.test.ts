@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addRule, matchRules, monthRange } from './month'
+import { addRule, matchRules, monthRange, splitByToday } from './month'
 
 describe('matchRules', () => {
   it('ルールの言葉を含む予定は表示する', () => {
@@ -53,5 +53,24 @@ describe('addRule', () => {
   it('空や、すでにある言葉は足さない', () => {
     expect(addRule(['飲み'], '   ')).toEqual(['飲み'])
     expect(addRule(['飲み'], '飲み')).toEqual(['飲み'])
+  })
+})
+
+describe('splitByToday', () => {
+  const day = (d: number) => new Date(2026, 9, d).getTime()
+  const today = day(13)
+
+  it('今日より前の日は過去、今日と今日以降はこれから に分ける', () => {
+    const r = splitByToday([day(3), day(12), day(13), day(20)], today)
+    expect(r.past).toEqual([day(3), day(12)])
+    expect(r.upcoming).toEqual([day(13), day(20)])
+  })
+
+  it('全部これからなら過去は空', () => {
+    expect(splitByToday([day(14), day(15)], today).past).toEqual([])
+  })
+
+  it('全部過去ならこれからは空', () => {
+    expect(splitByToday([day(1), day(2)], today).upcoming).toEqual([])
   })
 })

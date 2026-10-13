@@ -1,4 +1,5 @@
-import { matchRules } from '../lib/month'
+import { useState } from 'react'
+import { matchRules, splitByToday } from '../lib/month'
 import { dayType, hm, md, minOf, sod, WD } from '../lib/time'
 import type { Ev } from '../lib/types'
 
@@ -26,6 +27,42 @@ export function Month({ start, events, rules, onToast }: Props) {
     byDay.set(ds, [...(byDay.get(ds) ?? []), e])
   }
 
+  const [pastOpen, setPastOpen] = useState(false)
+  const today = sod(now)
+  const { past, upcoming } = splitByToday([...byDay.keys()], today)
+  const pastCount = past.reduce((n, ds) => n + (byDay.get(ds)?.length ?? 0), 0)
+  // 今日の赤線は、今日を含む月のページにだけ出す
+  const next = new Date(m.getFullYear(), m.getMonth() + 1, 1).getTime()
+  const showToday = start <= today && today < next
+
+  const row = (ds: number) => {
+    const evs = byDay.get(ds) ?? []
+    const type = dayType(ds, events ?? [])
+    return (
+      <li key={ds} className={evs.every((e) => e.end <= now) ? 'past' : undefined}>
+        <span className={`month-date px ${type}`}>
+          {md(ds)} <small>{WD[new Date(ds).getDay()]}</small>
+        </span>
+        <span className="month-evs">
+          {evs.map((e) => {
+            const time = e.allDay ? '終日' : `${hm(minOf(e.start, ds))}–${hm(minOf(e.end, ds))}`
+            return (
+              <button
+                key={e.id}
+                type="button"
+                className={`month-ev interactive ${e.kind}`}
+                onClick={() => onToast(`${md(ds)} ${time} ${e.title}`)}
+              >
+                <span className="time">{time}</span>
+                {e.title}
+              </button>
+            )
+          })}
+        </span>
+      </li>
+    )
+  }
+
   return (
     <div className="week-page month-page">
       <h2 className="month-title px">
@@ -40,32 +77,25 @@ export function Month({ start, events, rules, onToast }: Props) {
         <p className="month-empty">ルールに合う予定はありません</p>
       ) : (
         <ul className="month-list">
-          {[...byDay].map(([ds, evs]) => {
-            const type = dayType(ds, events)
-            return (
-              <li key={ds} className={evs.every((e) => e.end <= now) ? 'past' : undefined}>
-                <span className={`month-date px ${type}`}>
-                  {md(ds)} <small>{WD[new Date(ds).getDay()]}</small>
-                </span>
-                <span className="month-evs">
-                  {evs.map((e) => {
-                    const time = e.allDay ? '終日' : `${hm(minOf(e.start, ds))}–${hm(minOf(e.end, ds))}`
-                    return (
-                      <button
-                        key={e.id}
-                        type="button"
-                        className={`month-ev interactive ${e.kind}`}
-                        onClick={() => onToast(`${md(ds)} ${time} ${e.title}`)}
-                      >
-                        <span className="time">{time}</span>
-                        {e.title}
-                      </button>
-                    )
-                  })}
-                </span>
-              </li>
-            )
-          })}
+          {past.length > 0 && (
+            <li className="past-toggle">
+              <button
+                type="button"
+                className="interactive"
+                aria-expanded={pastOpen}
+                onClick={() => setPastOpen((v) => !v)}
+              >
+                {`過去 ${pastCount}件 ${pastOpen ? '▾' : '▸'}`}
+              </button>
+            </li>
+          )}
+          {pastOpen && past.map(row)}
+          {showToday && (
+            <li className="today-line" aria-label="今日">
+              <span className="px">{`今日 ${md(today)}`}</span>
+            </li>
+          )}
+          {upcoming.map(row)}
         </ul>
       )}
     </div>

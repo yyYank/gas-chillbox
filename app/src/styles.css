@@ -798,3 +798,28 @@ button {
 .thread-count {
   color: rgb(var(--muted));
 }
+
+/* 月表示：過去の予定の折りたたみと、今日の赤線 */
+.month-list li.past-toggle {
+  padding: 4px 0;
+}
+.past-toggle button {
+  color: rgb(var(--muted));
+  font-size: calc(13px * var(--fs));
+}
+.month-list li.today-line {
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 0;
+}
+.today-line::after {
+  content: "";
+  flex: 1;
+  height: 2px;
+  background: rgb(var(--accent));
+}
+.today-line span {
+  color: rgb(var(--accent-strong));
+  font-size: calc(12px * var(--fs));
+}

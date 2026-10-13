@@ -20,3 +20,8 @@ export function addRule(rules: string[], word: string): string[] {
   if (!w || rules.includes(w)) return rules
   return [...rules, w]
 }
+
+/** 日の始まりの一覧を、今日より前（過去）と今日以降（これから）に分ける。並び順はそのまま */
+export function splitByToday(days: number[], today: number): { past: number[]; upcoming: number[] } {
+  return { past: days.filter((d) => d < today), upcoming: days.filter((d) => d >= today) }
+}
