@@ -666,3 +666,75 @@ button {
   font-size: calc(12px * var(--fs));
   color: rgb(var(--muted));
 }
+
+/* メール：差出人ごとのまとめ */
+#mail {
+  flex: 1;
+  overflow-y: auto;
+}
+.mail-page {
+  padding: 12px 12px 72px;
+}
+.mail-page .month-title small + small {
+  margin-left: 6px;
+}
+.sender-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sender-list li {
+  padding: 10px 0;
+  border-bottom: 1px solid rgb(var(--border) / 0.6);
+}
+.sender-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.sender-name {
+  flex: 1;
+  min-width: 0;
+  font-size: calc(15px * var(--fs));
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.sender-count {
+  font-size: calc(16px * var(--fs));
+  color: rgb(var(--accent-strong));
+}
+.sender-latest {
+  margin-top: 2px;
+  font-size: calc(13px * var(--fs));
+  overflow-wrap: anywhere;
+}
+.sender-latest .date {
+  margin-right: 6px;
+  color: rgb(var(--muted));
+}
+.sender-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.sender-address {
+  flex: 1;
+  min-width: 0;
+  font-size: calc(11px * var(--fs));
+  color: rgb(var(--muted));
+  overflow-wrap: anywhere;
+}
+.unsub {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border: 1px solid rgb(var(--accent));
+  border-radius: var(--r-sm);
+  color: rgb(var(--accent-strong));
+  font-size: calc(12px * var(--fs));
+  text-decoration: none;
+}
+.unsub.none {
+  border-color: transparent;
+  color: rgb(var(--faint));
+}

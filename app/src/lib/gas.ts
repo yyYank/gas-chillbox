@@ -1,3 +1,4 @@
+import type { Mail } from './mail'
 import { addDays } from './time'
 import type { Ev, InitRes } from './types'
 
@@ -59,8 +60,28 @@ function mockDays(start: number, days: number): Ev[] {
 
 let mockRules: string[] = ['飲み']
 
-function mock(fn: string, args: unknown[]): InitRes | Ev[] | string[] | boolean {
+function mockMails(): Mail[] {
+  const now = Date.now()
+  const senders = [
+    ['Amazon.co.jp <store-news@amazon.co.jp>', 'タイムセール開催中', 18, '<https://example.com/u/amazon>'],
+    ['"楽天市場" <info@rakuten.co.jp>', 'ポイント5倍キャンペーン', 11, '<mailto:unsub@rakuten.co.jp>'],
+    ['ユニクロ <news@uniqlo.example>', '週末限定価格のお知らせ', 6, '<https://example.com/u/uniqlo>'],
+    ['Some Store <hello@store.example>', '新商品のご案内', 2, ''],
+  ] as const
+  return senders.flatMap(([from, subject, n, unsubscribe]) =>
+    Array.from({ length: n }, (_, i) => ({
+      id: `${from}${i}`,
+      from,
+      subject: i === 0 ? subject : `${subject}（${i}）`,
+      date: now - i * 86400000 * 1.3,
+      unsubscribe,
+    })),
+  )
+}
+
+function mock(fn: string, args: unknown[]): InitRes | Ev[] | Mail[] | string[] | boolean {
   if (fn === 'getRules') return mockRules
+  if (fn === 'getPromotions') return mockMails()
   if (fn === 'saveRules') {
     mockRules = args[0] as string[]
     return true

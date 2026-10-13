@@ -1,8 +1,10 @@
 import { type CSSProperties, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Day } from './components/Day'
+import { MailSenders } from './components/MailSenders'
 import { Month } from './components/Month'
 import { loadCache, saveCache } from './lib/cache'
 import { call } from './lib/gas'
+import type { Mail } from './lib/mail'
 import { addRule, monthRange } from './lib/month'
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, stepFontScale } from './lib/settings'
 import { addDays, pageCount, pageDays, sod } from './lib/time'
@@ -27,6 +29,10 @@ export function App() {
   const [monthEvents, setMonthEvents] = useState<Record<number, Ev[]>>({})
   const [monthPages, setMonthPages] = useState(3)
   const monthLoading = useRef(new Set<number>())
+  // メール：タブを開いたときに一度だけ読む
+  const [mails, setMails] = useState<Mail[] | undefined>(undefined)
+  const [mailError, setMailError] = useState('')
+  const mailRequested = useRef(false)
 
   useEffect(() => setSettings(loadSettings()), [])
 
@@ -132,6 +138,15 @@ export function App() {
       )
     }
   }, [settings.view, rules, monthPages, monthEvents, today, showToast])
+
+  useEffect(() => {
+    if (settings.source !== 'mail' || mailRequested.current) return
+    mailRequested.current = true
+    call<Mail[]>('getPromotions').then(setMails, (err) => {
+      setMailError('メールを読み込めませんでした')
+      console.error(err)
+    })
+  }, [settings.source])
 
   const changeRules = (next: string[]) => {
     const prev = rules ?? []
@@ -390,7 +405,7 @@ export function App() {
         </main>
       ) : (
         <main id="mail" aria-label="メール">
-          <p className="month-empty">メールのビューは準備中です</p>
+          <MailSenders mails={mails} error={mailError} />
         </main>
       )}
 

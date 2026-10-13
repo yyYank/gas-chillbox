@@ -79,6 +79,45 @@ function getDays(startMs: number, days: number) {
   return out;
 }
 
+// メール：直近のプロモーションを、本文は読まずにヘッダーだけ取る（Gmail API・読み取り専用）
+const MAIL_QUERY = 'category:promotions newer_than:30d';
+const MAIL_MAX = 200;
+
+function getPromotions() {
+  const gmail = Gmail;
+  if (!gmail?.Users?.Messages) throw new Error('Gmail の高度なサービスが有効になっていません');
+  const messages = gmail.Users.Messages;
+  const ids: string[] = [];
+  let pageToken: string | undefined;
+  do {
+    const res = messages.list('me', {
+      q: MAIL_QUERY,
+      maxResults: Math.min(100, MAIL_MAX - ids.length),
+      pageToken,
+    });
+    (res.messages || []).forEach((m) => {
+      if (m.id) ids.push(m.id);
+    });
+    pageToken = res.nextPageToken || undefined;
+  } while (pageToken && ids.length < MAIL_MAX);
+
+  return ids.map((id) => {
+    const m = messages.get('me', id, {
+      format: 'metadata',
+      metadataHeaders: ['From', 'Subject', 'List-Unsubscribe'],
+    });
+    const header = (name: string) =>
+      (m.payload?.headers || []).find((h) => (h.name || '').toLowerCase() === name.toLowerCase())?.value || '';
+    return {
+      id,
+      from: header('From'),
+      subject: header('Subject'),
+      date: Number(m.internalDate || 0),
+      unsubscribe: header('List-Unsubscribe'),
+    };
+  });
+}
+
 const RULES_KEY = 'rules:month';
 
 /** 月表示のルール（タイトルに含む言葉の一覧）。スマホと PC で共有するので UserProperties に置く */
