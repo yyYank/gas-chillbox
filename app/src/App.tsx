@@ -3,7 +3,7 @@ import { Day } from './components/Day'
 import { loadCache, saveCache } from './lib/cache'
 import { call } from './lib/gas'
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from './lib/settings'
-import { addDays, md, sod, WD } from './lib/time'
+import { addDays, md, sod, WD, weekDays } from './lib/time'
 import type { Duties, Ev, InitRes, Settings } from './lib/types'
 
 const FIRST_DAYS = 21
@@ -135,6 +135,7 @@ export function App() {
   const t = new Date(today)
   const monthsAhead = (d.getFullYear() - t.getFullYear()) * 12 + d.getMonth() - t.getMonth()
   const lastDate = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate()
+  const week = settings.view === 'week'
   const hourOptions = Array.from({ length: 25 }, (_, i) => i)
 
   return (
@@ -259,6 +260,30 @@ export function App() {
             </select>
           </div>
           <div className="row">
+            <span>表示</span>
+            <div className="seg">
+              {(
+                [
+                  ['day', '1日'],
+                  ['week', '1週間'],
+                ] as const
+              ).map(([v, label]) => (
+                <button
+                  key={v}
+                  type="button"
+                  aria-pressed={settings.view === v}
+                  onClick={() => {
+                    setIndex(0)
+                    worldRef.current?.scrollTo({ left: 0 })
+                    change({ view: v })
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="row">
             <span>ズーム</span>
             <div className="seg">
               {[1, 1.5, 2, 3].map((v) => (
@@ -281,14 +306,14 @@ export function App() {
 
       <main
         id="world"
-        className={settings.zoom > 1 ? 'zoomed' : undefined}
+        className={[settings.zoom > 1 && 'zoomed', week && 'week'].filter(Boolean).join(' ') || undefined}
         aria-label="予定"
         ref={worldRef}
-        onScroll={onScroll}
+        onScroll={week ? undefined : onScroll}
       >
-        {Array.from({ length: days }, (_, i) => (
+        {(week ? weekDays(today) : Array.from({ length: days }, (_, i) => addDays(today, i))).map((ds, i) => (
           <Day
-            key={addDays(today, i)}
+            key={ds}
             index={i}
             today={today}
             events={events}
@@ -296,6 +321,7 @@ export function App() {
             settings={settings}
             onToast={showToast}
             onCopy={copy}
+            compact={week}
           />
         ))}
       </main>

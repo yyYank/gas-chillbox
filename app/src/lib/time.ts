@@ -12,6 +12,11 @@ export function addDays(ms: number, n: number): number {
   return d.getTime()
 }
 
+/** today から7日分の日の始まり */
+export function weekDays(today: number): number[] {
+  return Array.from({ length: 7 }, (_, i) => addDays(today, i))
+}
+
 export function minOf(ms: number, dayStart: number): number {
   return (ms - dayStart) / 60000
 }

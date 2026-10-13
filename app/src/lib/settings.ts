@@ -2,7 +2,7 @@ import type { Settings } from './types'
 
 const SET_KEY = 'gas-chillbox-settings-v1'
 
-export const DEFAULT_SETTINGS: Settings = { step: 1, from: 6, to: 24, zoom: 1 }
+export const DEFAULT_SETTINGS: Settings = { step: 1, from: 6, to: 24, zoom: 1, view: 'day' }
 
 export function loadSettings(): Settings {
   try {
@@ -11,6 +11,7 @@ export function loadSettings(): Settings {
     const s = JSON.parse(raw) as Partial<Settings>
     const next = { ...DEFAULT_SETTINGS }
     if (s.step === 1 || s.step === 2 || s.step === 3) next.step = s.step
+    if (s.view === 'day' || s.view === 'week') next.view = s.view
     if (s.zoom && [1, 1.5, 2, 3].includes(s.zoom)) next.zoom = s.zoom
     if (
       typeof s.from === 'number' &&

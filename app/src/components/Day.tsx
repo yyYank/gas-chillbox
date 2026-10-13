@@ -5,6 +5,7 @@ import type { Duties, Ev, Settings } from '../lib/types'
 const MIN_GAP = 60 // これ未満の空きは表示しない（分）
 const FLAG_BASE = 44
 const FLAG_GAP = 6
+const FLAG_BASE_COMPACT = 2
 
 interface Props {
   index: number
@@ -14,6 +15,8 @@ interface Props {
   settings: Settings
   onToast: (text: string) => void
   onCopy: (text: string) => void
+  /** 1週間表示の1行として描く（旗を積まず、行の頭に日付を出す） */
+  compact?: boolean
 }
 
 interface Slot {
@@ -22,7 +25,7 @@ interface Slot {
   b: number
 }
 
-export function Day({ index, today, events, duties, settings, onToast, onCopy }: Props) {
+export function Day({ index, today, events, duties, settings, onToast, onCopy, compact }: Props) {
   const trackRef = useRef<HTMLDivElement>(null)
   const h0 = settings.from
   const h1 = settings.to
@@ -53,8 +56,8 @@ export function Day({ index, today, events, duties, settings, onToast, onCopy }:
     flags.forEach((f, i) => {
       const l = f.offsetLeft
       const r = l + f.offsetWidth
-      let y = FLAG_BASE
-      for (const q of placed) if (l < q.r && r > q.l) y = Math.max(y, q.top + FLAG_GAP)
+      let y = compact ? FLAG_BASE_COMPACT : FLAG_BASE
+      if (!compact) for (const q of placed) if (l < q.r && r > q.l) y = Math.max(y, q.top + FLAG_GAP)
       f.style.bottom = `calc(var(--ground) + ${y}px)`
       const b = bars[i]
       if (b) b.style.height = `${y + 8}px`
@@ -81,7 +84,7 @@ export function Day({ index, today, events, duties, settings, onToast, onCopy }:
   for (let t = h0; t < h1; t += settings.step) ticks.push(t)
 
   return (
-    <section className={`day${isGate ? ' gate-day' : ''}`} data-i={index}>
+    <section className={`day${isGate ? ' gate-day' : ''}${compact ? ' compact' : ''}`} data-i={index}>
       <div className="track" ref={trackRef}>
         <div className="sky" style={{ left: 0, width: '33.34%', background: 'rgb(var(--bg))' }} />
         <div className="sky" style={{ left: '33.33%', width: '33.34%', background: 'rgb(var(--surface))' }} />
@@ -99,6 +102,12 @@ export function Day({ index, today, events, duties, settings, onToast, onCopy }:
             </div>
           </div>
         ))}
+
+        {compact && (
+          <div className={`rowdate px${isToday ? ' today' : ''}`}>
+            {md(ds)} <small>{WD[new Date(ds).getDay()]}</small>
+          </div>
+        )}
 
         {allDay.length > 0 && (
           <div className="allday">
