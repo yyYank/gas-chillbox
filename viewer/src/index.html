@@ -13,7 +13,7 @@
   --band:#F5E7BE; --band-ink:#3E3214; --band-head:#7A5A12; --warn:#A8431F; --holiday:#C24E2A;
   --morning:#FBF4E0; --noon:#F3EEE1; --evening:#D9D7E2;
   --hud:56px; --wall:28px; --gate:104px;
-  --soil-h:20%; --strip:14px; --ground:calc(var(--soil-h) + var(--strip));
+  --soil-h:20%; --strip:14px; --ground:calc(var(--soil-h) + var(--strip)); --zoom:1; --lbl:92px;
   --block:clamp(40px, 11vh, 72px);
 }
 *{box-sizing:border-box}
@@ -42,13 +42,28 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
 .chip.arm b{color:#fff}
 .chip.next{background:transparent;border:1px dashed var(--band-head)}
 #gate{white-space:nowrap;text-align:right;font-size:11px;color:var(--line);line-height:1.15;min-width:76px}
+#hud-set{font-size:18px;min-width:44px;min-height:44px;color:var(--line)}
+
+/* 設定パネル */
+#settings{position:fixed;inset:var(--hud) 0 auto 0;z-index:5;background:var(--ink);color:var(--paper);
+  padding:12px 14px calc(12px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px;
+  box-shadow:0 8px 24px rgba(0,0,0,.35)}
+#settings[hidden]{display:none}
+#settings .row{display:flex;align-items:center;gap:10px;font-size:13px;flex-wrap:wrap}
+#settings .row>span{min-width:72px;color:var(--line)}
+#settings .seg{display:flex;gap:6px}
+#settings .seg button{min-height:34px;padding:0 10px;border-radius:4px;background:rgba(255,255,255,.12);color:var(--paper);font-size:13px}
+#settings .seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+#settings select{min-height:34px;padding:0 6px;border-radius:4px;background:rgba(255,255,255,.12);color:var(--paper);font-size:13px;border:0}
+#settings .close{align-self:flex-end;min-height:34px;padding:0 14px;border-radius:4px;background:rgba(255,255,255,.12);color:var(--paper);font-size:13px}
 #gate span{display:block;font-size:17px;color:var(--paper)}
 
 /* 地面（横スクロール） */
 #world{flex:1;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
   overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+#world.zoomed{scroll-snap-type:x proximity}
 #world::-webkit-scrollbar{display:none}
-.day{position:relative;flex:0 0 100vw;width:100vw;height:100%;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden}
+.day{position:relative;flex:0 0 calc(100vw * var(--zoom));width:calc(100vw * var(--zoom));height:100%;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden}
 .day.gate-day{--wall:var(--gate)}
 .track{position:absolute;top:0;bottom:0;left:0;right:var(--wall)}
 .sky{position:absolute;top:0;bottom:var(--ground)}
@@ -66,12 +81,18 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
 .gate-day .wall .month{font-size:30px;writing-mode:vertical-rl;letter-spacing:.12em;position:absolute;left:14px;top:20px}
 .gate-day .wall .nextband{writing-mode:vertical-rl;font-size:12px;line-height:1.5;color:var(--line);position:absolute;left:60px;top:20px;bottom:10px;overflow:hidden}
 
-.blk{position:absolute;min-height:var(--block);height:auto;min-width:92px;padding:6px 7px;color:var(--paper);
-  border-radius:4px 4px 0 0;overflow:hidden;font-size:14px;line-height:1.2;display:flex;flex-direction:column;justify-content:flex-start}
+.blk{position:absolute;height:var(--block);min-width:2px;padding:0;color:var(--paper);
+  border-radius:4px 4px 0 0;overflow:visible;font-size:14px;line-height:1.2}
+/* 札：バーの左端から出る。幅はバーに縛られないので文字が読める */
+.blk .lbl{position:absolute;left:0;bottom:0;width:var(--lbl);padding:5px 7px;
+  background:var(--ink);color:var(--paper);border-radius:4px;border-left:3px solid var(--line);
+  display:flex;flex-direction:column;text-align:left}
 .blk .t{word-break:auto-phrase;overflow-wrap:break-word}
-.blk small{font-size:11px;opacity:.8;font-family:"Zen Kaku Gothic New",sans-serif;white-space:nowrap}
+.blk small{font-size:11px;opacity:.75;font-family:"Zen Kaku Gothic New",sans-serif;white-space:nowrap}
 .blk.work{background:var(--work)}
+.blk.work .lbl{border-left-color:var(--work)}
 .blk.private{background:var(--private)}
+.blk.private .lbl{border-left-color:var(--private)}
 .blk.tent{border-top:4px solid var(--accent);opacity:.88}
 
 .free{position:absolute;bottom:calc(var(--ground) + 6px);min-height:28px;display:flex;align-items:flex-end;justify-content:center;
@@ -106,7 +127,18 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
   <button id="hud-date" class="px today" aria-label="今日に戻る">--/-- <small>-</small></button>
   <div id="band" role="list"></div>
   <div id="gate" class="px"></div>
+  <button id="hud-set" class="px" aria-label="設定" aria-expanded="false">⚙</button>
 </header>
+<div id="settings" class="px" hidden>
+  <div class="row"><span>目盛り</span><div class="seg" data-key="step">
+    <button type="button" data-v="1">1h</button><button type="button" data-v="2">2h</button><button type="button" data-v="3">3h</button>
+  </div></div>
+  <div class="row"><span>時間帯</span><select id="set-from"></select><span style="min-width:0">〜</span><select id="set-to"></select></div>
+  <div class="row"><span>ズーム</span><div class="seg" data-key="zoom">
+    <button type="button" data-v="1">1x</button><button type="button" data-v="1.5">1.5x</button><button type="button" data-v="2">2x</button><button type="button" data-v="3">3x</button>
+  </div></div>
+  <button type="button" class="close" id="set-close">閉じる</button>
+</div>
 <main id="world" aria-label="予定"></main>
 <div id="loading" class="px">読み込み中…</div>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -121,6 +153,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
   var MIN_GAP = 60;                              // これ未満の空きは表示しない（分）
   var WD = ['日', '月', '火', '水', '木', '金', '土'];
   var CACHE_KEY = 'gas-chillbox-cache-v1';
+  var SET_KEY = 'gas-chillbox-settings-v1';
+  var settings = { step: 1, from: 6, to: 24, zoom: 1 };
 
   var world = document.getElementById('world');
   var hudDate = document.getElementById('hud-date');
@@ -128,6 +162,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
   var gate = document.getElementById('gate');
   var toastEl = document.getElementById('toast');
   var loadingEl = document.getElementById('loading');
+  var setBtn = document.getElementById('hud-set');
+  var setPanel = document.getElementById('settings');
 
   var state = { today: sod(Date.now()), days: 0, events: [], ids: {}, duties: { current: [], next: [] }, loading: false };
 
@@ -222,7 +258,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
     h.push('<div class="sky" style="left:33.33%;width:33.34%;background:var(--noon)"></div>');
     h.push('<div class="sky" style="left:66.66%;width:33.34%;background:var(--evening)"></div>');
     h.push('<div class="strip"></div><div class="soil"></div>');
-    for (var t = H0; t < H1; t++) {
+    for (var t = H0; t < H1; t += settings.step) {
       var p = pct(t * 60);
       h.push('<div class="tick' + (t % 3 === 0 ? ' major' : '') + '" style="left:' + p + '%"></div>' +
         '<div class="tl' + (t === H0 ? ' first' : '') + '" style="left:' + p + '%">' + t + '</div>');
@@ -261,7 +297,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
       var info = hm(x.a) + '–' + hm(x.b) + ' ' + e.title;
       h.push('<button class="blk px ' + e.kind + (e.tentative ? ' tent' : '') + '" style="left:' + left + '%;width:' + width +
         '%;bottom:calc(var(--ground) + ' + x.lane + ' * (var(--block) + 4px))" data-toast="' + esc(info) + '" aria-label="' + esc(info) + '">' +
-        '<span class="t">' + esc(title) + '</span>' + (width < 5 ? '' : '<small>' + hm(x.a) + (e.tentative ? ' 仮' : '') + '</small>') + '</button>');
+        '<span class="lbl"><span class="t">' + esc(title) + '</span><small>' + hm(x.a) + '–' + hm(x.b) + (e.tentative ? ' 仮' : '') + '</small></span></button>');
     });
 
     // 月末：未完了の義務が看板として進路に立つ
@@ -301,7 +337,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
     var html = [];
     for (var i = 0; i < state.days; i++) html.push(dayHtml(i));
     world.innerHTML = html.join('');
-    world.scrollLeft = idx * world.clientWidth;
+    world.scrollLeft = idx * dayW();
     loadingEl.style.display = 'none';
     updateHud();
   }
@@ -313,7 +349,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
   }
 
   // ---------- HUD ----------
-  function currentIndex() { return Math.round(world.scrollLeft / Math.max(1, world.clientWidth)); }
+  function dayW() { return Math.max(1, world.clientWidth * settings.zoom); }
+  function currentIndex() { return Math.round(world.scrollLeft / dayW()); }
 
   function updateHud() {
     var i = currentIndex();
@@ -384,6 +421,71 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
     });
   }
 
+  // ---------- 設定 ----------
+  function loadSettings() {
+    try {
+      var s = JSON.parse(localStorage.getItem(SET_KEY) || 'null');
+      if (s) {
+        if ([1, 2, 3].indexOf(s.step) >= 0) settings.step = s.step;
+        if ([1, 1.5, 2, 3].indexOf(s.zoom) >= 0) settings.zoom = s.zoom;
+        if (s.from >= 0 && s.to <= 24 && s.to - s.from >= 4) { settings.from = s.from; settings.to = s.to; }
+      }
+    } catch (e) { /* 使えない環境では既定値 */ }
+  }
+  function saveSettings() {
+    try { localStorage.setItem(SET_KEY, JSON.stringify(settings)); } catch (e) { /* 無視 */ }
+  }
+  function applySettings() {
+    H0 = settings.from; H1 = settings.to; SPAN = (H1 - H0) * 60;
+    document.documentElement.style.setProperty('--zoom', settings.zoom);
+    world.classList.toggle('zoomed', settings.zoom > 1);
+  }
+  function syncSettingsUi() {
+    setPanel.querySelectorAll('.seg button').forEach(function (b) {
+      var key = b.parentNode.getAttribute('data-key');
+      b.setAttribute('aria-pressed', String(Number(b.getAttribute('data-v')) === settings[key]));
+    });
+    fromSel.value = String(settings.from);
+    toSel.value = String(settings.to);
+  }
+  var fromSel = document.getElementById('set-from');
+  var toSel = document.getElementById('set-to');
+  (function fillHourSelects() {
+    var h = [];
+    for (var t = 0; t <= 24; t++) h.push('<option value="' + t + '">' + t + ':00</option>');
+    fromSel.innerHTML = h.join(''); toSel.innerHTML = h.join('');
+  })();
+
+  function changeSettings(fn) {
+    fn();
+    applySettings(); saveSettings(); syncSettingsUi(); renderAll(true);
+  }
+
+  setBtn.addEventListener('click', function () {
+    var open = setPanel.hasAttribute('hidden');
+    if (open) { setPanel.removeAttribute('hidden'); syncSettingsUi(); } else setPanel.setAttribute('hidden', '');
+    setBtn.setAttribute('aria-expanded', String(open));
+  });
+  document.getElementById('set-close').addEventListener('click', function () {
+    setPanel.setAttribute('hidden', ''); setBtn.setAttribute('aria-expanded', 'false');
+  });
+  setPanel.addEventListener('click', function (ev) {
+    var b = ev.target.closest('.seg button');
+    if (!b) return;
+    var key = b.parentNode.getAttribute('data-key'), v = Number(b.getAttribute('data-v'));
+    changeSettings(function () { settings[key] = v; });
+  });
+  fromSel.addEventListener('change', function () {
+    var v = Number(fromSel.value);
+    if (settings.to - v < 4) { toast('4時間以上にしてください'); syncSettingsUi(); return; }
+    changeSettings(function () { settings.from = v; });
+  });
+  toSel.addEventListener('change', function () {
+    var v = Number(toSel.value);
+    if (v - settings.from < 4) { toast('4時間以上にしてください'); syncSettingsUi(); return; }
+    changeSettings(function () { settings.to = v; });
+  });
+
   // ---------- 操作 ----------
   var ticking = false;
   world.addEventListener('scroll', function () {
@@ -453,7 +555,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
     if (now) { now.style.left = pct(nowMin()) + '%'; now.querySelector('span').textContent = 'いま ' + hm(nowMin()); }
   }, 60000);
 
-  window.addEventListener('resize', function () { var i = currentIndex(); requestAnimationFrame(function () { world.scrollLeft = i * world.clientWidth; }); });
+  window.addEventListener('resize', function () { var i = currentIndex(); requestAnimationFrame(function () { world.scrollLeft = i * dayW(); }); });
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && sod(Date.now()) !== state.today) init(); });
 
   // ---------- GAS の外で開いたとき用のダミーデータ ----------
@@ -486,6 +588,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
     markDone: function () { return true; },
   };
 
+  loadSettings();
+  applySettings();
   init();
 })();
 </script>
