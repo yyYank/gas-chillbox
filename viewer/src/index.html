@@ -55,6 +55,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
 .strip{position:absolute;left:0;right:0;bottom:var(--soil-h);height:var(--strip);background:var(--line)}
 .soil{position:absolute;left:0;right:0;bottom:0;height:var(--soil-h);background:var(--soil)}
 .tick{position:absolute;bottom:calc(var(--soil-h) - 8px);width:1px;height:8px;background:var(--line)}
+.tick.major{bottom:calc(var(--soil-h) - 12px);height:12px;background:var(--muted)}
 .tl{position:absolute;bottom:calc(var(--soil-h) - 24px);font-size:11px;color:var(--muted);transform:translateX(-50%)}
 .tl.first{transform:none;padding-left:4px}
 
@@ -221,10 +222,11 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
     h.push('<div class="sky" style="left:33.33%;width:33.34%;background:var(--noon)"></div>');
     h.push('<div class="sky" style="left:66.66%;width:33.34%;background:var(--evening)"></div>');
     h.push('<div class="strip"></div><div class="soil"></div>');
-    [6, 9, 12, 15, 18, 21].forEach(function (t, k) {
+    for (var t = H0; t < H1; t++) {
       var p = pct(t * 60);
-      h.push('<div class="tick" style="left:' + p + '%"></div><div class="tl' + (k === 0 ? ' first' : '') + '" style="left:' + p + '%">' + t + '</div>');
-    });
+      h.push('<div class="tick' + (t % 3 === 0 ? ' major' : '') + '" style="left:' + p + '%"></div>' +
+        '<div class="tl' + (t === H0 ? ' first' : '') + '" style="left:' + p + '%">' + t + '</div>');
+    }
 
     // 終日の予定（空に掲げる）
     if (allDay.length) {
