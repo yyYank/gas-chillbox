@@ -13,7 +13,7 @@
   --band:#F5E7BE; --band-ink:#3E3214; --band-head:#7A5A12; --warn:#A8431F; --holiday:#C24E2A;
   --morning:#FBF4E0; --noon:#F3EEE1; --evening:#D9D7E2;
   --hud:56px; --wall:28px; --gate:104px;
-  --soil-h:20%; --strip:14px; --ground:calc(var(--soil-h) + var(--strip)); --zoom:1; --lbl:92px; --lblstep:72px;
+  --soil-h:20%; --strip:2px; --ground:calc(var(--soil-h) + var(--strip)); --zoom:1; --lbl:92px;
   --block:clamp(40px, 11vh, 72px);
 }
 *{box-sizing:border-box}
@@ -67,11 +67,11 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
 .day.gate-day{--wall:var(--gate)}
 .track{position:absolute;top:0;bottom:0;left:0;right:var(--wall)}
 .sky{position:absolute;top:0;bottom:var(--ground)}
-.strip{position:absolute;left:0;right:0;bottom:var(--soil-h);height:var(--strip);background:var(--line)}
-.soil{position:absolute;left:0;right:0;bottom:0;height:var(--soil-h);background:var(--soil)}
-.tick{position:absolute;bottom:calc(var(--soil-h) - 8px);width:1px;height:8px;background:var(--line)}
+.strip{z-index:0;position:absolute;left:0;right:0;bottom:var(--soil-h);height:var(--strip);background:var(--line)}
+.soil{z-index:0;position:absolute;left:0;right:0;bottom:0;height:var(--soil-h);background:var(--soil)}
+.tick{z-index:0;position:absolute;bottom:calc(var(--soil-h) - 8px);width:1px;height:8px;background:var(--line)}
 .tick.major{bottom:calc(var(--soil-h) - 12px);height:12px;background:var(--muted)}
-.tl{position:absolute;bottom:calc(var(--soil-h) - 24px);font-size:11px;color:var(--muted);transform:translateX(-50%)}
+.tl{z-index:0;position:absolute;bottom:calc(var(--soil-h) - 24px);font-size:11px;color:var(--muted);transform:translateX(-50%)}
 .tl.first{transform:none;padding-left:4px}
 
 .wall{position:absolute;top:0;bottom:0;right:0;width:var(--wall);background:var(--work);color:var(--paper);overflow:hidden}
@@ -81,23 +81,21 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
 .gate-day .wall .month{font-size:30px;writing-mode:vertical-rl;letter-spacing:.12em;position:absolute;left:14px;top:20px}
 .gate-day .wall .nextband{writing-mode:vertical-rl;font-size:12px;line-height:1.5;color:var(--line);position:absolute;left:60px;top:20px;bottom:10px;overflow:hidden}
 
-/* バー：地面に1段。時間軸はこれで読む */
-.blk{position:absolute;bottom:var(--ground);height:var(--block);min-width:2px;padding:0;color:var(--paper);
-  border-radius:3px 3px 0 0;overflow:visible;font-size:14px;line-height:1.2;
-  box-shadow:inset -1px 0 0 var(--paper),inset 1px 0 0 var(--paper)}
-/* 札：バーの上に段積みし、引き出し線で開始位置に繋ぐ */
-.blk .lbl{position:absolute;left:0;bottom:calc(100% + var(--leader));width:var(--lbl);padding:5px 7px;
-  background:var(--ink);color:var(--paper);border-radius:4px;border-left:3px solid var(--line);
-  display:flex;flex-direction:column;text-align:left}
-.blk .lbl::after{content:"";position:absolute;left:-3px;top:100%;width:3px;height:var(--leader);background:inherit}
-.blk .t{word-break:auto-phrase;overflow-wrap:break-word}
-.blk small{font-size:11px;opacity:.75;font-family:"Zen Kaku Gothic New",sans-serif;white-space:nowrap}
+/* L1 柱＝予定の時間。幅がそのまま時間、高さは旗までの長さ */
+.blk{z-index:1;position:absolute;bottom:var(--ground);height:var(--block);min-width:2px;padding:0;
+  border-radius:2px 2px 0 0;
+  box-shadow:inset -1.5px 0 0 var(--paper),inset 1.5px 0 0 var(--paper),
+             3px 0 6px rgba(0,0,0,.18),0 2px 4px rgba(0,0,0,.14)}
+/* L3 旗＝予定名。柱より手前の層に置き、重ならない高さへ積む */
+.flags{z-index:3;position:absolute;inset:0;pointer-events:none}
+.flag{position:absolute;min-width:var(--lbl);padding:4px 7px;background:#fff;color:var(--ink);
+  border-radius:5px;box-shadow:0 6px 16px rgba(0,0,0,.30),0 2px 4px rgba(0,0,0,.18);
+  font-size:13px;font-weight:700;line-height:1.25;text-align:left;word-break:auto-phrase}
+.flag .t{word-break:auto-phrase;overflow-wrap:break-word}
+.flag small{display:block;font-size:11px;font-weight:400;color:#5C5750;
+  font-family:"Zen Kaku Gothic New",sans-serif;white-space:nowrap}
 .blk.work{background:var(--work)}
-.blk.work .lbl{border-left-color:var(--work)}
-.blk.work .lbl::after{background:var(--work)}
 .blk.private{background:var(--private)}
-.blk.private .lbl{border-left-color:var(--private)}
-.blk.private .lbl::after{background:var(--private)}
 .blk.tent{border-top:4px solid var(--accent);opacity:.88}
 
 .free{position:absolute;bottom:calc(var(--ground) + 6px);min-height:28px;display:flex;align-items:flex-end;justify-content:center;
@@ -109,7 +107,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
 .allday span{font-size:12px;padding:3px 8px;border-radius:3px;background:rgba(255,255,255,.7);border:1px solid var(--line);color:var(--ink)}
 .allday span.holiday{color:var(--holiday);border-color:#E6B7A6}
 
-.now{position:absolute;top:0;bottom:var(--ground);width:2px;background:var(--accent);transform:translateX(-1px)}
+.now{z-index:2;position:absolute;top:0;bottom:var(--ground);width:2px;background:var(--accent);transform:translateX(-1px)}
 .now::after{content:"";position:absolute;bottom:-8px;left:-7px;width:16px;height:16px;border-radius:50%;background:var(--accent);border:3px solid var(--paper)}
 .now span{position:absolute;top:38px;left:8px;font-size:13px;color:var(--accent);white-space:nowrap}
 
@@ -153,7 +151,6 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
   'use strict';
 
   var H0 = 6, H1 = 24, SPAN = (H1 - H0) * 60;   // 地面に描く時間帯（6:00〜24:00）
-  var BLK_MIN = 92, BLK_GAP = 4, WALL = 28;    // ブロックの最小幅・隙間・右の壁（px）
   var FIRST_DAYS = 21, CHUNK = 14;
   var MIN_GAP = 60;                              // これ未満の空きは表示しない（分）
   var WD = ['日', '月', '火', '水', '木', '金', '土'];
@@ -177,11 +174,6 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
   function addDays(ms, n) { var d = new Date(ms); d.setDate(d.getDate() + n); return d.getTime(); }
   function minOf(ms, dayStart) { return (ms - dayStart) / 60000; }
   function pct(min) { return Math.max(0, Math.min(100, (min - H0 * 60) / SPAN * 100)); }
-  // 最小幅で広がった分を分数に換算する（見た目の重なり判定用）
-  function minSpanMin() {
-    var track = Math.max(1, (window.innerWidth || 360) - WALL);
-    return (BLK_MIN + BLK_GAP) / track * SPAN;
-  }
   function hm(min) { min = Math.round(min); return Math.floor(min / 60) + ':' + String(min % 60).padStart(2, '0'); }
   function md(ms) { var d = new Date(ms); return (d.getMonth() + 1) + '/' + d.getDate(); }
   function ymd(ms) { var d = new Date(ms); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
@@ -246,16 +238,6 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
       return { e: e, a: Math.max(H0 * 60, minOf(e.start, ds)), b: Math.min(H1 * 60, minOf(e.end, ds)) };
     }).filter(function (x) { return x.b > x.a; }).sort(function (x, y) { return x.a - y.a || y.b - x.b; });
 
-    // 見た目で重なるものだけレーンを積む（最小幅で広がった分も占有とみなす）
-    var minSpan = minSpanMin();
-    var laneEnds = [];
-    timed.forEach(function (x) {
-      var occupied = Math.max(x.b, x.a + minSpan);
-      var l = laneEnds.findIndex(function (t) { return t <= x.a; });
-      if (l < 0) { l = laneEnds.length; laneEnds.push(0); }
-      laneEnds[l] = occupied; x.lane = l;
-    });
-
     var h = [];
     h.push('<section class="day' + (isGate ? ' gate-day' : '') + '" data-i="' + i + '" data-ds="' + ds + '">');
     h.push('<div class="track">');
@@ -295,15 +277,18 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
       h.push('<button class="free" style="left:' + (left + 0.6) + '%;width:' + Math.max(0, width - 1.2) + '%" data-copy="' + esc(text) + '" aria-label="' + esc(text) + '">' + short + '</button>');
     });
 
-    // 予定＝地面に立つブロック
+    // 予定＝地面に立つ柱（L1）と、その上の旗（L3）。高さは描画後に layoutFlags で決める
+    var flags = [];
     timed.forEach(function (x) {
       var e = x.e, left = pct(x.a), width = pct(x.b) - left;
       var title = e.title.replace(/^\[Slack\]\s*/, '');
       var info = hm(x.a) + '–' + hm(x.b) + ' ' + e.title;
       h.push('<button class="blk px ' + e.kind + (e.tentative ? ' tent' : '') + '" style="left:' + left + '%;width:' + width +
-        '%;--leader:calc(10px + ' + x.lane + ' * var(--lblstep))" data-toast="' + esc(info) + '" aria-label="' + esc(info) + '">' +
-        '<span class="lbl"><span class="t">' + esc(title) + '</span><small>' + hm(x.a) + '–' + hm(x.b) + (e.tentative ? ' 仮' : '') + '</small></span></button>');
+        '%" data-toast="' + esc(info) + '" aria-label="' + esc(info) + '"></button>');
+      flags.push('<span class="flag px" style="left:' + left + '%;width:' + width + '%">' +
+        '<span class="t">' + esc(title) + '</span><small>' + hm(x.a) + '–' + hm(x.b) + (e.tentative ? ' 仮' : '') + '</small></span>');
     });
+    if (flags.length) h.push('<div class="flags">' + flags.join('') + '</div>');
 
     // 月末：未完了の義務が看板として進路に立つ
     var todayMonth = new Date(state.today).getMonth();
@@ -337,11 +322,29 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
     return h.join('');
   }
 
+  // 旗は描画してからでないと高さが分からない。測って、重ならない位置まで積み上げる
+  var FLAG_BASE = 44, FLAG_GAP = 6;
+  function layoutFlags(day) {
+    var bars = day.querySelectorAll('.blk'), flags = day.querySelectorAll('.flag'), placed = [];
+    for (var i = 0; i < flags.length; i++) {
+      var f = flags[i], b = bars[i];
+      var l = f.offsetLeft, r = l + f.offsetWidth, y = FLAG_BASE;
+      placed.forEach(function (q) { if (l < q.r && r > q.l) y = Math.max(y, q.top + FLAG_GAP); });
+      f.style.bottom = 'calc(var(--ground) + ' + y + 'px)';
+      if (b) b.style.height = (y + 8) + 'px';
+      placed.push({ l: l, r: r, top: y + f.offsetHeight });
+    }
+  }
+  function layoutAll(scope) {
+    (scope || world).querySelectorAll('.day').forEach(layoutFlags);
+  }
+
   function renderAll(keepIndex) {
     var idx = keepIndex ? currentIndex() : 0;
     var html = [];
     for (var i = 0; i < state.days; i++) html.push(dayHtml(i));
     world.innerHTML = html.join('');
+    layoutAll();
     world.scrollLeft = idx * dayW();
     loadingEl.style.display = 'none';
     updateHud();
@@ -351,6 +354,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
     var html = [];
     for (var i = from; i < to; i++) html.push(dayHtml(i));
     world.insertAdjacentHTML('beforeend', html.join(''));
+    layoutAll();
   }
 
   // ---------- HUD ----------
@@ -560,7 +564,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
     if (now) { now.style.left = pct(nowMin()) + '%'; now.querySelector('span').textContent = 'いま ' + hm(nowMin()); }
   }, 60000);
 
-  window.addEventListener('resize', function () { var i = currentIndex(); requestAnimationFrame(function () { world.scrollLeft = i * dayW(); }); });
+  window.addEventListener('resize', function () { var i = currentIndex(); requestAnimationFrame(function () { layoutAll(); world.scrollLeft = i * dayW(); }); });
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && sod(Date.now()) !== state.today) init(); });
 
   // ---------- GAS の外で開いたとき用のダミーデータ ----------
