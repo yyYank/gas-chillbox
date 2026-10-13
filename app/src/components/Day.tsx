@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from 'react'
 import { addDays, dayType, hm, hours, md, minOf, nowMin, WD } from '../lib/time'
-import type { Duties, Ev, Settings } from '../lib/types'
+import type { Ev, Settings } from '../lib/types'
 
 const MIN_GAP = 60 // これ未満の空きは表示しない（分）
 const FLAG_BASE = 44
@@ -12,7 +12,6 @@ interface Props {
   index: number
   today: number
   events: Ev[]
-  duties: Duties
   settings: Settings
   onToast: (text: string) => void
   onCopy: (text: string) => void
@@ -26,7 +25,7 @@ interface Slot {
   b: number
 }
 
-export function Day({ index, today, events, duties, settings, onToast, onCopy, compact }: Props) {
+export function Day({ index, today, events, settings, onToast, onCopy, compact }: Props) {
   const trackRef = useRef<HTMLDivElement>(null)
   const h0 = settings.from
   const h1 = settings.to
@@ -116,7 +115,6 @@ export function Day({ index, today, events, duties, settings, onToast, onCopy, c
   const type = dayType(ds, events)
   const nextType = dayType(de, events)
   const holiday = nextType === 'holiday'
-  const todayMonth = new Date(today).getMonth()
   const ticks: number[] = []
   for (let t = h0; t < h1; t += settings.step) ticks.push(t)
 
@@ -210,21 +208,6 @@ export function Day({ index, today, events, duties, settings, onToast, onCopy, c
           </div>
         )}
 
-        {isGate && new Date(ds).getMonth() === todayMonth && duties.current.length > 0 && (
-          <div className="signs">
-            {duties.current.slice(0, 3).map((d) => (
-              <div key={d.key} className="sign">
-                <div className="board">
-                  {d.title}
-                  {d.months > 1 && <b>{` (${d.months}か月目)`}</b>}
-                  <small>{`門を越えると (${d.months + 1}か月目)`}</small>
-                </div>
-                <div className="post" />
-              </div>
-            ))}
-          </div>
-        )}
-
         {isToday && (
           <div className="now" style={{ left: `${pct(nowMin())}%` }}>
             <span className="px">{`いま ${hm(nowMin())}`}</span>
@@ -236,9 +219,6 @@ export function Day({ index, today, events, duties, settings, onToast, onCopy, c
         {isGate ? (
           <>
             <div className="month px">{`${nextDay.getMonth() + 1}月`}</div>
-            {nextDay.getMonth() === (todayMonth + 1) % 12 && duties.next.length > 0 && (
-              <div className="nextband">{`来月　${duties.next.map((d) => d.title).join('・')}`}</div>
-            )}
           </>
         ) : (
           <div className={`wl px ${nextType}`}>

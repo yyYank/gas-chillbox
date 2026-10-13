@@ -10,20 +10,8 @@ export interface Ev {
   tentative?: boolean
 }
 
-export interface Duty {
-  title: string
-  key: string
-  months: number
-}
-
-export interface Duties {
-  current: Duty[]
-  next: Duty[]
-}
-
 export interface InitRes {
   events: Ev[]
-  duties: Duties
 }
 
 export interface Settings {

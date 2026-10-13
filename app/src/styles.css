@@ -87,29 +87,6 @@ button {
   border-bottom-color: rgb(var(--accent));
   color: rgb(var(--bg));
 }
-.chip {
-  white-space: nowrap;
-  font-size: calc(13px * var(--fs));
-  padding: 0 8px;
-  height: 30px;
-  border-radius: var(--r-sm);
-  background: rgba(255, 255, 255, 0.6);
-}
-.chip b {
-  color: rgb(var(--danger));
-  margin-left: 2px;
-}
-.chip.arm {
-  background: rgb(var(--accent));
-  color: #fff;
-}
-.chip.arm b {
-  color: #fff;
-}
-.chip.next {
-  background: transparent;
-  border: 1px dashed rgb(var(--warning));
-}
 #hud-set {
   font-size: calc(18px * var(--fs));
   min-width: 44px;
@@ -407,17 +384,6 @@ button {
   left: 14px;
   top: 20px;
 }
-.gate-day .wall .nextband {
-  writing-mode: vertical-rl;
-  font-size: calc(12px * var(--fs));
-  line-height: 1.5;
-  color: rgb(var(--border));
-  position: absolute;
-  left: 60px;
-  top: 20px;
-  bottom: 10px;
-  overflow: hidden;
-}
 
 /* L1 柱＝予定の時間。幅がそのまま時間、高さは旗までの長さ */
 .blk {
@@ -550,46 +516,6 @@ button {
   font-size: calc(13px * var(--fs));
   color: rgb(var(--accent));
   white-space: nowrap;
-}
-
-.signs {
-  position: absolute;
-  right: 10px;
-  bottom: var(--ground);
-  display: flex;
-  gap: 10px;
-  align-items: flex-end;
-  max-width: 60%;
-}
-.sign {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 0;
-}
-.sign .board {
-  background: rgb(var(--accent-soft));
-  color: rgb(var(--accent-soft-foreground));
-  border: 2px solid rgb(var(--warning));
-  border-radius: 3px;
-  padding: 5px 9px;
-  font-size: calc(13px * var(--fs));
-  line-height: 1.3;
-  text-align: center;
-  max-width: 150px;
-}
-.sign .board b {
-  color: rgb(var(--danger));
-}
-.sign .board small {
-  display: block;
-  font-size: calc(10px * var(--fs));
-  color: #6b5a2c;
-}
-.sign .post {
-  width: 4px;
-  height: 28px;
-  background: rgb(var(--warning));
 }
 
 #toast {

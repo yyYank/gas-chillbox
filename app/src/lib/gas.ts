@@ -1,5 +1,5 @@
 import { addDays } from './time'
-import type { Duties, Ev, InitRes } from './types'
+import type { Ev, InitRes } from './types'
 
 // google.script.run は GAS の iframe の中にしか無い。無い時はダミーで動かす。
 interface GasRunner {
@@ -57,20 +57,6 @@ function mockDays(start: number, days: number): Ev[] {
   return out
 }
 
-function mockDuties(): Duties {
-  return {
-    current: [
-      { title: '健診', key: 'done:健診:x', months: 3 },
-      { title: '住民税', key: 'done:住民税:x', months: 1 },
-      { title: '次男 予防接種', key: 'done:予防接種:x', months: 1 },
-    ],
-    next: [
-      { title: '年末調整', key: 'n1', months: 1 },
-      { title: 'インフル予防接種', key: 'n2', months: 1 },
-    ],
-  }
-}
-
 let mockRules: string[] = ['飲み']
 
 function mock(fn: string, args: unknown[]): InitRes | Ev[] | string[] | boolean {
@@ -80,7 +66,7 @@ function mock(fn: string, args: unknown[]): InitRes | Ev[] | string[] | boolean 
     return true
   }
   if (fn === 'getInit') {
-    return { events: mockDays(args[0] as number, args[1] as number), duties: mockDuties() }
+    return { events: mockDays(args[0] as number, args[1] as number) }
   }
   if (fn === 'getDays') return mockDays(args[0] as number, args[1] as number)
   return true

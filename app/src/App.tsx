@@ -6,18 +6,16 @@ import { call } from './lib/gas'
 import { addRule, monthRange } from './lib/month'
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, stepFontScale } from './lib/settings'
 import { addDays, pageCount, pageDays, sod } from './lib/time'
-import type { Duties, Ev, InitRes, Settings } from './lib/types'
+import type { Ev, InitRes, Settings } from './lib/types'
 
 const FIRST_DAYS = 21
 const CHUNK = 14
-const EMPTY_DUTIES: Duties = { current: [], next: [] }
 
 export function App() {
   const worldRef = useRef<HTMLElement>(null)
   const [today, setToday] = useState(() => sod(Date.now()))
   const [days, setDays] = useState(0)
   const [events, setEvents] = useState<Ev[]>([])
-  const [duties, setDuties] = useState<Duties>(EMPTY_DUTIES)
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
   const [loading, setLoading] = useState('読み込み中…')
   const [toast, setToast] = useState('')
@@ -57,16 +55,14 @@ export function App() {
     if (cached) {
       setEvents(cached.events.filter((e) => e.end > t))
       setDays(Math.round((cached.start + cached.days * 86400000 - t) / 86400000))
-      setDuties(cached.duties ?? EMPTY_DUTIES)
       setLoading('')
     }
-    call<InitRes>('getInit', [t, FIRST_DAYS, Date.now()]).then(
+    call<InitRes>('getInit', [t, FIRST_DAYS]).then(
       (res) => {
         setEvents(res.events)
-        setDuties(res.duties)
         setDays(FIRST_DAYS)
         setLoading('')
-        saveCache({ start: t, days: FIRST_DAYS, events: res.events, duties: res.duties })
+        saveCache({ start: t, days: FIRST_DAYS, events: res.events })
       },
       (err) => {
         setLoading(cached ? '' : '読み込めませんでした')
@@ -87,7 +83,7 @@ export function App() {
         setEvents((prev) => {
           const seen = new Set(prev.map((e) => e.id))
           const merged = prev.concat(more.filter((e) => !seen.has(e.id)))
-          saveCache({ start: today, days: days + CHUNK, events: merged, duties })
+          saveCache({ start: today, days: days + CHUNK, events: merged })
           return merged
         })
         setDays((d) => d + CHUNK)
@@ -99,7 +95,7 @@ export function App() {
         console.error(err)
       },
     )
-  }, [today, days, duties, showToast])
+  }, [today, days, showToast])
 
   // ---------- 横スクロール ----------
   const onScroll = useCallback(() => {
@@ -180,7 +176,6 @@ export function App() {
       index={Math.round((ds - today) / 86400000)}
       today={today}
       events={events}
-      duties={duties}
       settings={settings}
       onToast={showToast}
       onCopy={copy}

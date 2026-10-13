@@ -1,4 +1,4 @@
-import type { Duties, Ev } from './types'
+import type { Ev } from './types'
 
 const CACHE_KEY = 'gas-chillbox-cache-v1'
 
@@ -6,7 +6,6 @@ export interface Cache {
   start: number
   days: number
   events: Ev[]
-  duties: Duties
 }
 
 export function saveCache(c: Cache): void {
