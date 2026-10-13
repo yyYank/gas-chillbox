@@ -115,6 +115,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
   'use strict';
 
   var H0 = 6, H1 = 24, SPAN = (H1 - H0) * 60;   // 地面に描く時間帯（6:00〜24:00）
+  var BLK_MIN = 92, BLK_GAP = 4, WALL = 28;    // ブロックの最小幅・隙間・右の壁（px）
   var FIRST_DAYS = 21, CHUNK = 14;
   var MIN_GAP = 60;                              // これ未満の空きは表示しない（分）
   var WD = ['日', '月', '火', '水', '木', '金', '土'];
@@ -134,6 +135,11 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
   function addDays(ms, n) { var d = new Date(ms); d.setDate(d.getDate() + n); return d.getTime(); }
   function minOf(ms, dayStart) { return (ms - dayStart) / 60000; }
   function pct(min) { return Math.max(0, Math.min(100, (min - H0 * 60) / SPAN * 100)); }
+  // 最小幅で広がった分を分数に換算する（見た目の重なり判定用）
+  function minSpanMin() {
+    var track = Math.max(1, (window.innerWidth || 360) - WALL);
+    return (BLK_MIN + BLK_GAP) / track * SPAN;
+  }
   function hm(min) { min = Math.round(min); return Math.floor(min / 60) + ':' + String(min % 60).padStart(2, '0'); }
   function md(ms) { var d = new Date(ms); return (d.getMonth() + 1) + '/' + d.getDate(); }
   function ymd(ms) { var d = new Date(ms); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
@@ -198,12 +204,14 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
       return { e: e, a: Math.max(H0 * 60, minOf(e.start, ds)), b: Math.min(H1 * 60, minOf(e.end, ds)) };
     }).filter(function (x) { return x.b > x.a; }).sort(function (x, y) { return x.a - y.a || y.b - x.b; });
 
-    // 重なりはレーンを積む
+    // 見た目で重なるものだけレーンを積む（最小幅で広がった分も占有とみなす）
+    var minSpan = minSpanMin();
     var laneEnds = [];
     timed.forEach(function (x) {
+      var occupied = Math.max(x.b, x.a + minSpan);
       var l = laneEnds.findIndex(function (t) { return t <= x.a; });
       if (l < 0) { l = laneEnds.length; laneEnds.push(0); }
-      laneEnds[l] = x.b; x.lane = l;
+      laneEnds[l] = occupied; x.lane = l;
     });
 
     var h = [];
