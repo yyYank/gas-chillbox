@@ -22,10 +22,14 @@ export interface Settings {
   view: View
   /** 上のタブ。どのソースを見ているか */
   source: Source
+  /** メールのタブの表示 */
+  mailView: MailView
   /** 文字の倍率（1 = 100%） */
   fontScale: number
 }
 
 export type Source = 'calendar' | 'mail'
+
+export type MailView = 'services' | 'promotions'
 
 export type View = 'day' | 'five' | 'weekdays' | 'week' | 'month'

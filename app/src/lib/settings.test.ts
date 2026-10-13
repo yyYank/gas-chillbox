@@ -87,3 +87,20 @@ describe('loadSettings のタブ（ソース）', () => {
     expect(loadSettings().source).toBe('calendar')
   })
 })
+
+describe('loadSettings のメールの表示', () => {
+  it('保存されていなければサービス別', () => {
+    stubSaved(null)
+    expect(loadSettings().mailView).toBe('services')
+  })
+
+  it('保存されたプロモーションを読み戻せる', () => {
+    stubSaved(JSON.stringify({ mailView: 'promotions' }))
+    expect(loadSettings().mailView).toBe('promotions')
+  })
+
+  it('知らない値はサービス別に戻す', () => {
+    stubSaved(JSON.stringify({ mailView: 'unread' }))
+    expect(loadSettings().mailView).toBe('services')
+  })
+})

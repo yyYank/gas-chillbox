@@ -67,6 +67,16 @@ function mockMails(): Mail[] {
     ['"楽天市場" <info@rakuten.co.jp>', 'ポイント5倍キャンペーン', 11, '<mailto:unsub@rakuten.co.jp>'],
     ['ユニクロ <news@uniqlo.example>', '週末限定価格のお知らせ', 6, '<https://example.com/u/uniqlo>'],
     ['Some Store <hello@store.example>', '新商品のご案内', 2, ''],
+    ['楽天カード <info@mail.rakuten.co.jp>', 'ご利用明細のお知らせ', 9, ''],
+    ['GitHub <notifications@github.com>', '[repo] New issue', 24, ''],
+    ['Google <no-reply@accounts.google.com>', 'セキュリティ通知', 4, ''],
+    ['Slack <feedback@slack.com>', '未読のメッセージがあります', 7, ''],
+    ['note <info@note.com>', 'あなたへのおすすめ', 5, '<https://example.com/u/note>'],
+    ['Zoom <no-reply@zoom.us>', 'ミーティングの録画', 3, ''],
+    ['PayPay <info@paypay.ne.jp>', 'キャンペーンのお知らせ', 3, '<https://example.com/u/paypay>'],
+    ['Qiita <info@qiita.com>', 'トレンド記事', 2, ''],
+    ['connpass <no-reply@connpass.com>', 'イベントのお知らせ', 2, ''],
+    ['Yahoo <mail@news.yahoo.co.jp>', 'ニュース', 1, ''],
   ] as const
   return senders.flatMap(([from, subject, n, unsubscribe]) =>
     Array.from({ length: n }, (_, i) => ({
@@ -81,7 +91,7 @@ function mockMails(): Mail[] {
 
 function mock(fn: string, args: unknown[]): InitRes | Ev[] | Mail[] | string[] | boolean {
   if (fn === 'getRules') return mockRules
-  if (fn === 'getPromotions') return mockMails()
+  if (fn === 'getPromotions' || fn === 'getReceived') return mockMails()
   if (fn === 'saveRules') {
     mockRules = args[0] as string[]
     return true

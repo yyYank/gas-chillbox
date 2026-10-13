@@ -18,6 +18,7 @@ export const DEFAULT_SETTINGS: Settings = {
   zoom: 1,
   view: 'day',
   source: 'calendar',
+  mailView: 'services',
   fontScale: 1,
 }
 
@@ -30,6 +31,7 @@ export function loadSettings(): Settings {
     if (s.step === 1 || s.step === 2 || s.step === 3) next.step = s.step
     if (s.view && ['day', 'five', 'weekdays', 'week', 'month'].includes(s.view)) next.view = s.view
     if (s.source === 'calendar' || s.source === 'mail') next.source = s.source
+    if (s.mailView === 'services' || s.mailView === 'promotions') next.mailView = s.mailView
     if (typeof s.fontScale === 'number' && s.fontScale >= FONT_MIN && s.fontScale <= FONT_MAX)
       next.fontScale = s.fontScale
     if (s.zoom && [1, 1.5, 2, 3].includes(s.zoom)) next.zoom = s.zoom

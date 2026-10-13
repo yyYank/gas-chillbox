@@ -1,6 +1,7 @@
 import { type CSSProperties, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Day } from './components/Day'
 import { MailSenders } from './components/MailSenders'
+import { MailServices } from './components/MailServices'
 import { Month } from './components/Month'
 import { loadCache, saveCache } from './lib/cache'
 import { call } from './lib/gas'
@@ -8,7 +9,7 @@ import type { Mail } from './lib/mail'
 import { addRule, monthRange } from './lib/month'
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, stepFontScale } from './lib/settings'
 import { addDays, pageCount, pageDays, sod } from './lib/time'
-import type { Ev, InitRes, Settings } from './lib/types'
+import type { Ev, InitRes, MailView, Settings } from './lib/types'
 
 const FIRST_DAYS = 21
 const CHUNK = 14
@@ -30,9 +31,9 @@ export function App() {
   const [monthPages, setMonthPages] = useState(3)
   const monthLoading = useRef(new Set<number>())
   // メール：タブを開いたときに一度だけ読む
-  const [mails, setMails] = useState<Mail[] | undefined>(undefined)
-  const [mailError, setMailError] = useState('')
-  const mailRequested = useRef(false)
+  const [mails, setMails] = useState<Partial<Record<MailView, Mail[]>>>({})
+  const [mailError, setMailError] = useState<Partial<Record<MailView, string>>>({})
+  const mailRequested = useRef(new Set<MailView>())
 
   useEffect(() => setSettings(loadSettings()), [])
 
@@ -139,14 +140,19 @@ export function App() {
     }
   }, [settings.view, rules, monthPages, monthEvents, today, showToast])
 
+  // メールは表示ごとに、開いたときに一度だけ読む
   useEffect(() => {
-    if (settings.source !== 'mail' || mailRequested.current) return
-    mailRequested.current = true
-    call<Mail[]>('getPromotions').then(setMails, (err) => {
-      setMailError('メールを読み込めませんでした')
-      console.error(err)
-    })
-  }, [settings.source])
+    const mv = settings.mailView
+    if (settings.source !== 'mail' || mailRequested.current.has(mv)) return
+    mailRequested.current.add(mv)
+    call<Mail[]>(mv === 'services' ? 'getReceived' : 'getPromotions').then(
+      (ms) => setMails((p) => ({ ...p, [mv]: ms })),
+      (err) => {
+        setMailError((p) => ({ ...p, [mv]: 'メールを読み込めませんでした' }))
+        console.error(err)
+      },
+    )
+  }, [settings.source, settings.mailView])
 
   const changeRules = (next: string[]) => {
     const prev = rules ?? []
@@ -295,6 +301,28 @@ export function App() {
               </div>
             </>
           )}
+          {!cal && (
+            <div className="row">
+              <span>表示</span>
+              <div className="seg">
+                {(
+                  [
+                    ['services', 'サービス別'],
+                    ['promotions', 'プロモーション'],
+                  ] as const
+                ).map(([v, label]) => (
+                  <button
+                    key={v}
+                    type="button"
+                    aria-pressed={settings.mailView === v}
+                    onClick={() => change({ mailView: v })}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="row">
             <span>文字</span>
             <div className="seg">
@@ -405,7 +433,11 @@ export function App() {
         </main>
       ) : (
         <main id="mail" aria-label="メール">
-          <MailSenders mails={mails} error={mailError} />
+          {settings.mailView === 'services' ? (
+            <MailServices mails={mails.services} error={mailError.services ?? ''} />
+          ) : (
+            <MailSenders mails={mails.promotions} error={mailError.promotions ?? ''} />
+          )}
         </main>
       )}
 

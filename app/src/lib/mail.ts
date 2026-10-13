@@ -60,3 +60,58 @@ export function groupBySender(mails: Mail[]): Sender[] {
   }
   return [...map.values()].sort((a, b) => b.count - a.count || b.latestDate - a.latestDate)
 }
+
+// co.jp・ne.jp・co.uk のように、2段で1つの末尾として扱うもの（よく見るものだけ）
+const SECOND_LEVEL = new Set([
+  'co',
+  'ne',
+  'or',
+  'ac',
+  'go',
+  'ad',
+  'ed',
+  'gr',
+  'lg',
+  'com',
+  'net',
+  'org',
+  'gov',
+  'edu',
+])
+
+/** アドレスのドメインからサービスを決める。サブドメインは取り除く */
+export function serviceOf(address: string): string {
+  const at = address.lastIndexOf('@')
+  if (at < 0) return address
+  const labels = address
+    .slice(at + 1)
+    .toLowerCase()
+    .split('.')
+    .filter(Boolean)
+  const n = labels.length >= 3 && SECOND_LEVEL.has(labels[labels.length - 2]) ? 3 : 2
+  return labels.slice(-n).join('.')
+}
+
+export interface Service {
+  service: string
+  count: number
+  senders: Sender[]
+}
+
+/** サービスごとにまとめて件数の多い順に並べる。上位 top 件より後ろは「その他」にまとめる */
+export function groupByService(mails: Mail[], top: number): Service[] {
+  const map = new Map<string, Mail[]>()
+  for (const m of mails) {
+    const key = serviceOf(parseFrom(m.from).address)
+    map.set(key, [...(map.get(key) ?? []), m])
+  }
+  const all = [...map].map(([service, ms]) => ({ service, count: ms.length, senders: groupBySender(ms) }))
+  all.sort((a, b) => b.count - a.count || a.service.localeCompare(b.service))
+  if (all.length <= top) return all
+  const rest = all.slice(top)
+  const restMails = mails.filter((m) => rest.some((r) => r.service === serviceOf(parseFrom(m.from).address)))
+  return [
+    ...all.slice(0, top),
+    { service: 'その他', count: restMails.length, senders: groupBySender(restMails) },
+  ]
+}

@@ -79,11 +79,19 @@ function getDays(startMs: number, days: number) {
   return out;
 }
 
-// メール：直近のプロモーションを、本文は読まずにヘッダーだけ取る（Gmail API・読み取り専用）
-const MAIL_QUERY = 'category:promotions newer_than:30d';
-const MAIL_MAX = 200;
+// メール：本文は読まずにヘッダーだけ取る（Gmail API・読み取り専用）
 
+/** 直近30日のプロモーション */
 function getPromotions() {
+  return getMails_('category:promotions newer_than:30d', 200);
+}
+
+/** 直近30日に受け取ったメール全部（送信済みは除く）。サービス別の集計に使う */
+function getReceived() {
+  return getMails_('-in:sent -in:chats -in:drafts newer_than:30d', 500);
+}
+
+function getMails_(query: string, max: number) {
   const gmail = Gmail;
   if (!gmail?.Users?.Messages) throw new Error('Gmail の高度なサービスが有効になっていません');
   const messages = gmail.Users.Messages;
@@ -91,15 +99,15 @@ function getPromotions() {
   let pageToken: string | undefined;
   do {
     const res = messages.list('me', {
-      q: MAIL_QUERY,
-      maxResults: Math.min(100, MAIL_MAX - ids.length),
+      q: query,
+      maxResults: Math.min(500, max - ids.length),
       pageToken,
     });
     (res.messages || []).forEach((m) => {
       if (m.id) ids.push(m.id);
     });
     pageToken = res.nextPageToken || undefined;
-  } while (pageToken && ids.length < MAIL_MAX);
+  } while (pageToken && ids.length < max);
 
   return ids.map((id) => {
     const m = messages.get('me', id, {

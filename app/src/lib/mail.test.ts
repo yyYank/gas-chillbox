@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { groupBySender, type Mail, parseFrom, parseUnsubscribe } from './mail'
+import { groupBySender, groupByService, type Mail, parseFrom, parseUnsubscribe, serviceOf } from './mail'
 
 describe('parseFrom', () => {
   it('「名前 <アドレス>」を名前とアドレスに分ける', () => {
@@ -80,5 +80,63 @@ describe('groupBySender', () => {
       mail('A <a@x.com>', '新しい', 9),
     ])
     expect(g[0].unsubscribe.url).toBe('https://x.com/old')
+  })
+})
+
+describe('serviceOf', () => {
+  it('アドレスのドメインをサービスとして返す', () => {
+    expect(serviceOf('a@x.com')).toBe('x.com')
+  })
+
+  it('サブドメインは取り除いてまとめる', () => {
+    expect(serviceOf('store-news@amazon.co.jp')).toBe('amazon.co.jp')
+    expect(serviceOf('info@mail.rakuten.co.jp')).toBe('rakuten.co.jp')
+    expect(serviceOf('no-reply@accounts.google.com')).toBe('google.com')
+  })
+
+  it('co.jp や ne.jp、co.uk のような2段の末尾を1つと数える', () => {
+    expect(serviceOf('a@news.example.ne.jp')).toBe('example.ne.jp')
+    expect(serviceOf('a@foo.bar.co.uk')).toBe('bar.co.uk')
+  })
+
+  it('@ がなければそのまま返す', () => {
+    expect(serviceOf('unknown')).toBe('unknown')
+  })
+})
+
+describe('groupByService', () => {
+  const mail = (from: string, date = 1): Mail => ({
+    id: `${from}${date}`,
+    from,
+    subject: 's',
+    date,
+    unsubscribe: '',
+  })
+
+  it('サービスごとに数え、件数の多い順に並べる', () => {
+    const g = groupByService(
+      [mail('a@x.com'), mail('b@mail.y.com'), mail('c@y.com'), mail('d@news.y.com')],
+      10,
+    )
+    expect(g.map((x) => [x.service, x.count])).toEqual([
+      ['y.com', 3],
+      ['x.com', 1],
+    ])
+  })
+
+  it('各サービスは差出人ごとのまとめも持つ', () => {
+    const g = groupByService([mail('A <a@y.com>'), mail('A <a@y.com>', 2), mail('B <b@mail.y.com>')], 10)
+    expect(g[0].senders.map((s) => [s.address, s.count])).toEqual([
+      ['a@y.com', 2],
+      ['b@mail.y.com', 1],
+    ])
+  })
+
+  it('上位 N 件を超えた分は「その他」にまとめて最後に置く', () => {
+    const g = groupByService([mail('a@a.com'), mail('a@a.com', 2), mail('b@b.com'), mail('c@c.com')], 1)
+    expect(g.map((x) => [x.service, x.count])).toEqual([
+      ['a.com', 2],
+      ['その他', 2],
+    ])
   })
 })

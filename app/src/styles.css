@@ -738,3 +738,53 @@ button {
   border-color: transparent;
   color: rgb(var(--faint));
 }
+
+/* メール：サービス別の横棒グラフ。棒は1色（件数の大小だけを表す） */
+.service-chart {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.service-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  row-gap: 3px;
+  width: 100%;
+  padding: 6px 0;
+  text-align: left;
+}
+.service-name {
+  min-width: 0;
+  font-size: calc(14px * var(--fs));
+  overflow-wrap: anywhere;
+}
+.service-count {
+  font-size: calc(14px * var(--fs));
+  color: rgb(var(--text));
+}
+.service-bar {
+  grid-column: 1 / -1;
+  height: 12px;
+  min-width: 2px;
+  border-radius: 0 4px 4px 0;
+  background: rgb(var(--accent));
+}
+.service-row.other .service-bar {
+  background: rgb(var(--border-strong));
+}
+.back {
+  margin-bottom: 8px;
+  color: rgb(var(--accent-strong));
+  font-size: calc(14px * var(--fs));
+}
+.service-title {
+  margin: 0 0 4px;
+  font-size: calc(17px * var(--fs));
+  overflow-wrap: anywhere;
+}
+.service-title small {
+  margin-left: 6px;
+  font-size: calc(13px * var(--fs));
+  font-weight: 400;
+  color: rgb(var(--muted));
+}

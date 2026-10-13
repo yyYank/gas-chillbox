@@ -1,4 +1,4 @@
-import { groupBySender, type Mail } from '../lib/mail'
+import { groupBySender, type Mail, type Sender } from '../lib/mail'
 import { md } from '../lib/time'
 
 interface Props {
@@ -23,35 +23,42 @@ export function MailSenders({ mails, error }: Props) {
       ) : senders.length === 0 ? (
         <p className="month-empty">プロモーションのメールはありません</p>
       ) : (
-        <ul className="sender-list">
-          {senders.map((s) => (
-            <li key={s.address}>
-              <div className="sender-head">
-                <span className="sender-name">{s.name}</span>
-                <span className="sender-count px">{`${s.count}通`}</span>
-              </div>
-              <div className="sender-latest">
-                <span className="date px">{md(s.latestDate)}</span>
-                {s.latest}
-              </div>
-              <div className="sender-foot">
-                <span className="sender-address">{s.address}</span>
-                {s.unsubscribe.url ? (
-                  <a className="unsub" href={s.unsubscribe.url} target="_blank" rel="noopener noreferrer">
-                    配信停止
-                  </a>
-                ) : s.unsubscribe.mailto ? (
-                  <a className="unsub" href={s.unsubscribe.mailto} target="_blank" rel="noopener noreferrer">
-                    配信停止（メール）
-                  </a>
-                ) : (
-                  <span className="unsub none">配信停止の案内なし</span>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
+        <SenderList senders={senders} />
       )}
     </div>
+  )
+}
+
+/** 差出人ごとの一覧。件数・最新の件名・配信停止のリンクを出す */
+export function SenderList({ senders }: { senders: Sender[] }) {
+  return (
+    <ul className="sender-list">
+      {senders.map((s) => (
+        <li key={s.address}>
+          <div className="sender-head">
+            <span className="sender-name">{s.name}</span>
+            <span className="sender-count px">{`${s.count}通`}</span>
+          </div>
+          <div className="sender-latest">
+            <span className="date px">{md(s.latestDate)}</span>
+            {s.latest}
+          </div>
+          <div className="sender-foot">
+            <span className="sender-address">{s.address}</span>
+            {s.unsubscribe.url ? (
+              <a className="unsub" href={s.unsubscribe.url} target="_blank" rel="noopener noreferrer">
+                配信停止
+              </a>
+            ) : s.unsubscribe.mailto ? (
+              <a className="unsub" href={s.unsubscribe.mailto} target="_blank" rel="noopener noreferrer">
+                配信停止（メール）
+              </a>
+            ) : (
+              <span className="unsub none">配信停止の案内なし</span>
+            )}
+          </div>
+        </li>
+      ))}
+    </ul>
   )
 }
