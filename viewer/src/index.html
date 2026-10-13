@@ -65,9 +65,9 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
 .gate-day .wall .month{font-size:30px;writing-mode:vertical-rl;letter-spacing:.12em;position:absolute;left:14px;top:20px}
 .gate-day .wall .nextband{writing-mode:vertical-rl;font-size:12px;line-height:1.5;color:var(--line);position:absolute;left:60px;top:20px;bottom:10px;overflow:hidden}
 
-.blk{position:absolute;height:var(--block);min-width:6px;padding:6px 8px;color:var(--paper);
+.blk{position:absolute;min-height:var(--block);height:auto;min-width:92px;padding:6px 7px;color:var(--paper);
   border-radius:4px 4px 0 0;overflow:hidden;font-size:14px;line-height:1.2;display:flex;flex-direction:column;justify-content:flex-start}
-.blk .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.blk .t{word-break:auto-phrase;overflow-wrap:break-word}
 .blk small{font-size:11px;opacity:.8;font-family:"Zen Kaku Gothic New",sans-serif;white-space:nowrap}
 .blk.work{background:var(--work)}
 .blk.private{background:var(--private)}
@@ -251,7 +251,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
       var info = hm(x.a) + '–' + hm(x.b) + ' ' + e.title;
       h.push('<button class="blk px ' + e.kind + (e.tentative ? ' tent' : '') + '" style="left:' + left + '%;width:' + width +
         '%;bottom:calc(var(--ground) + ' + x.lane + ' * (var(--block) + 4px))" data-toast="' + esc(info) + '" aria-label="' + esc(info) + '">' +
-        (width < 5 ? '' : '<span class="t">' + esc(title) + '</span><small>' + hm(x.a) + (e.tentative ? ' 仮' : '') + '</small>') + '</button>');
+        '<span class="t">' + esc(title) + '</span>' + (width < 5 ? '' : '<small>' + hm(x.a) + (e.tentative ? ' 仮' : '') + '</small>') + '</button>');
     });
 
     // 月末：未完了の義務が看板として進路に立つ
