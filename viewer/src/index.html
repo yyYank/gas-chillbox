@@ -13,7 +13,7 @@
   --band:#F5E7BE; --band-ink:#3E3214; --band-head:#7A5A12; --warn:#A8431F; --holiday:#C24E2A;
   --morning:#FBF4E0; --noon:#F3EEE1; --evening:#D9D7E2;
   --hud:56px; --wall:28px; --gate:104px;
-  --soil-h:20%; --strip:14px; --ground:calc(var(--soil-h) + var(--strip)); --zoom:1; --lbl:92px;
+  --soil-h:20%; --strip:14px; --ground:calc(var(--soil-h) + var(--strip)); --zoom:1; --lbl:92px; --lblstep:72px;
   --block:clamp(40px, 11vh, 72px);
 }
 *{box-sizing:border-box}
@@ -81,18 +81,23 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
 .gate-day .wall .month{font-size:30px;writing-mode:vertical-rl;letter-spacing:.12em;position:absolute;left:14px;top:20px}
 .gate-day .wall .nextband{writing-mode:vertical-rl;font-size:12px;line-height:1.5;color:var(--line);position:absolute;left:60px;top:20px;bottom:10px;overflow:hidden}
 
-.blk{position:absolute;height:var(--block);min-width:2px;padding:0;color:var(--paper);
-  border-radius:4px 4px 0 0;overflow:visible;font-size:14px;line-height:1.2}
-/* 札：バーの左端から出る。幅はバーに縛られないので文字が読める */
-.blk .lbl{position:absolute;left:0;bottom:0;width:var(--lbl);padding:5px 7px;
+/* バー：地面に1段。時間軸はこれで読む */
+.blk{position:absolute;bottom:var(--ground);height:var(--block);min-width:2px;padding:0;color:var(--paper);
+  border-radius:3px 3px 0 0;overflow:visible;font-size:14px;line-height:1.2;
+  box-shadow:inset -1px 0 0 var(--paper),inset 1px 0 0 var(--paper)}
+/* 札：バーの上に段積みし、引き出し線で開始位置に繋ぐ */
+.blk .lbl{position:absolute;left:0;bottom:calc(100% + var(--leader));width:var(--lbl);padding:5px 7px;
   background:var(--ink);color:var(--paper);border-radius:4px;border-left:3px solid var(--line);
   display:flex;flex-direction:column;text-align:left}
+.blk .lbl::after{content:"";position:absolute;left:-3px;top:100%;width:3px;height:var(--leader);background:inherit}
 .blk .t{word-break:auto-phrase;overflow-wrap:break-word}
 .blk small{font-size:11px;opacity:.75;font-family:"Zen Kaku Gothic New",sans-serif;white-space:nowrap}
 .blk.work{background:var(--work)}
 .blk.work .lbl{border-left-color:var(--work)}
+.blk.work .lbl::after{background:var(--work)}
 .blk.private{background:var(--private)}
 .blk.private .lbl{border-left-color:var(--private)}
+.blk.private .lbl::after{background:var(--private)}
 .blk.tent{border-top:4px solid var(--accent);opacity:.88}
 
 .free{position:absolute;bottom:calc(var(--ground) + 6px);min-height:28px;display:flex;align-items:flex-end;justify-content:center;
@@ -296,7 +301,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cu
       var title = e.title.replace(/^\[Slack\]\s*/, '');
       var info = hm(x.a) + '–' + hm(x.b) + ' ' + e.title;
       h.push('<button class="blk px ' + e.kind + (e.tentative ? ' tent' : '') + '" style="left:' + left + '%;width:' + width +
-        '%;bottom:calc(var(--ground) + ' + x.lane + ' * (var(--block) + 4px))" data-toast="' + esc(info) + '" aria-label="' + esc(info) + '">' +
+        '%;--leader:calc(10px + ' + x.lane + ' * var(--lblstep))" data-toast="' + esc(info) + '" aria-label="' + esc(info) + '">' +
         '<span class="lbl"><span class="t">' + esc(title) + '</span><small>' + hm(x.a) + '–' + hm(x.b) + (e.tentative ? ' 仮' : '') + '</small></span></button>');
     });
 
