@@ -30,6 +30,6 @@ export interface Settings {
 
 export type Source = 'calendar' | 'mail'
 
-export type MailView = 'services' | 'promotions'
+export type MailView = 'services' | 'promotions' | 'awaiting'
 
 export type View = 'day' | 'five' | 'weekdays' | 'week' | 'month'

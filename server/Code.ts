@@ -91,6 +91,45 @@ function getReceived() {
   return getMails_('-in:sent -in:chats -in:drafts newer_than:30d', 500);
 }
 
+/**
+ * 未返信候補の材料：受信トレイの直近30日のスレッドと、その最後のメールのヘッダー。
+ * 判定（自分宛てか、メルマガか など）はクライアントで行う。下書きは最後のメールとみなさない。
+ */
+function getThreads() {
+  const gmail = Gmail;
+  if (!gmail?.Users?.Threads) throw new Error('Gmail の高度なサービスが有効になっていません');
+  const threads = gmail.Users.Threads;
+  const me = gmail.Users.getProfile('me').emailAddress || '';
+  const res = threads.list('me', {
+    q: 'in:inbox -category:promotions -category:social -category:updates -category:forums newer_than:30d',
+    maxResults: 200,
+  });
+  const list = (res.threads || []).map((t) => {
+    const th = threads.get('me', t.id || '', {
+      format: 'metadata',
+      metadataHeaders: ['From', 'To', 'Cc', 'Subject', 'List-Unsubscribe', 'List-Id'],
+    });
+    const msgs = (th.messages || []).filter((m) => (m.labelIds || []).indexOf('DRAFT') === -1);
+    const last = msgs[msgs.length - 1];
+    const first = msgs[0];
+    const header = (m: typeof last, name: string) =>
+      ((m && m.payload && m.payload.headers) || []).find((h) => (h.name || '').toLowerCase() === name.toLowerCase())
+        ?.value || '';
+    return {
+      id: t.id || '',
+      subject: header(first, 'Subject'),
+      from: header(last, 'From'),
+      to: header(last, 'To'),
+      cc: header(last, 'Cc'),
+      date: Number((last && last.internalDate) || 0),
+      unsubscribe: header(last, 'List-Unsubscribe'),
+      listId: header(last, 'List-Id'),
+      count: msgs.length,
+    };
+  });
+  return { me, threads: list };
+}
+
 function getMails_(query: string, max: number) {
   const gmail = Gmail;
   if (!gmail?.Users?.Messages) throw new Error('Gmail の高度なサービスが有効になっていません');

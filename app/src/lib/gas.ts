@@ -1,4 +1,5 @@
 import type { Mail } from './mail'
+import type { ThreadInfo } from './reply'
 import { addDays } from './time'
 import type { Ev, InitRes } from './types'
 
@@ -60,6 +61,41 @@ function mockDays(start: number, days: number): Ev[] {
 
 let mockRules: string[] = ['飲み']
 
+function mockThreads(): { me: string; threads: ThreadInfo[] } {
+  const me = 'me@example.com'
+  const day = 86400000
+  const now = Date.now()
+  const t = (
+    id: string,
+    from: string,
+    subject: string,
+    daysAgo: number,
+    extra: Partial<ThreadInfo> = {},
+  ) => ({
+    id,
+    subject,
+    from,
+    to: me,
+    cc: '',
+    date: now - daysAgo * day,
+    unsubscribe: '',
+    listId: '',
+    count: 1,
+    ...extra,
+  })
+  return {
+    me,
+    threads: [
+      t('a', '山田 太郎 <yamada@corp.example>', '来週の打ち合わせの日程について', 6, { count: 3 }),
+      t('b', '佐藤 <sato@school.example>', '保護者会の出欠のご確認', 3),
+      t('c', '自分 <me@example.com>', '見積もりの件', 2, { count: 2 }),
+      t('d', 'GitHub <notifications@github.com>', '[repo] New comment', 1),
+      t('e', '鈴木 <suzuki@corp.example>', '資料の共有', 0),
+      t('f', 'team@corp.example', '全体連絡', 4, { to: 'all@corp.example', cc: me }),
+    ],
+  }
+}
+
 function mockMails(): Mail[] {
   const now = Date.now()
   const senders = [
@@ -89,9 +125,13 @@ function mockMails(): Mail[] {
   )
 }
 
-function mock(fn: string, args: unknown[]): InitRes | Ev[] | Mail[] | string[] | boolean {
+function mock(
+  fn: string,
+  args: unknown[],
+): InitRes | Ev[] | Mail[] | { me: string; threads: ThreadInfo[] } | string[] | boolean {
   if (fn === 'getRules') return mockRules
   if (fn === 'getPromotions' || fn === 'getReceived') return mockMails()
+  if (fn === 'getThreads') return mockThreads()
   if (fn === 'saveRules') {
     mockRules = args[0] as string[]
     return true

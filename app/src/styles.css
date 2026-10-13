@@ -788,3 +788,13 @@ button {
   font-weight: 400;
   color: rgb(var(--muted));
 }
+
+/* メール：未返信候補。行全体が Gmail へのリンク */
+.awaiting {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+.thread-count {
+  color: rgb(var(--muted));
+}

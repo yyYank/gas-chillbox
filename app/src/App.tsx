@@ -1,5 +1,6 @@
 import { type CSSProperties, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Day } from './components/Day'
+import { MailAwaiting, type ThreadsRes } from './components/MailAwaiting'
 import { MailSenders } from './components/MailSenders'
 import { MailServices } from './components/MailServices'
 import { Month } from './components/Month'
@@ -32,6 +33,7 @@ export function App() {
   const monthLoading = useRef(new Set<number>())
   // メール：タブを開いたときに一度だけ読む
   const [mails, setMails] = useState<Partial<Record<MailView, Mail[]>>>({})
+  const [threads, setThreads] = useState<ThreadsRes | undefined>(undefined)
   const [mailError, setMailError] = useState<Partial<Record<MailView, string>>>({})
   const mailRequested = useRef(new Set<MailView>())
 
@@ -145,13 +147,16 @@ export function App() {
     const mv = settings.mailView
     if (settings.source !== 'mail' || mailRequested.current.has(mv)) return
     mailRequested.current.add(mv)
-    call<Mail[]>(mv === 'services' ? 'getReceived' : 'getPromotions').then(
-      (ms) => setMails((p) => ({ ...p, [mv]: ms })),
-      (err) => {
-        setMailError((p) => ({ ...p, [mv]: 'メールを読み込めませんでした' }))
-        console.error(err)
-      },
-    )
+    const fail = (err: unknown) => {
+      setMailError((p) => ({ ...p, [mv]: 'メールを読み込めませんでした' }))
+      console.error(err)
+    }
+    if (mv === 'awaiting') call<ThreadsRes>('getThreads').then(setThreads, fail)
+    else
+      call<Mail[]>(mv === 'services' ? 'getReceived' : 'getPromotions').then(
+        (ms) => setMails((p) => ({ ...p, [mv]: ms })),
+        fail,
+      )
   }, [settings.source, settings.mailView])
 
   const changeRules = (next: string[]) => {
@@ -308,6 +313,7 @@ export function App() {
                 {(
                   [
                     ['services', 'サービス別'],
+                    ['awaiting', '未返信'],
                     ['promotions', 'プロモーション'],
                   ] as const
                 ).map(([v, label]) => (
@@ -435,6 +441,8 @@ export function App() {
         <main id="mail" aria-label="メール">
           {settings.mailView === 'services' ? (
             <MailServices mails={mails.services} error={mailError.services ?? ''} />
+          ) : settings.mailView === 'awaiting' ? (
+            <MailAwaiting data={threads} error={mailError.awaiting ?? ''} />
           ) : (
             <MailSenders mails={mails.promotions} error={mailError.promotions ?? ''} />
           )}

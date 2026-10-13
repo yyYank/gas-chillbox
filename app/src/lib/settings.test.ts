@@ -99,6 +99,11 @@ describe('loadSettings のメールの表示', () => {
     expect(loadSettings().mailView).toBe('promotions')
   })
 
+  it('保存された未返信を読み戻せる', () => {
+    stubSaved(JSON.stringify({ mailView: 'awaiting' }))
+    expect(loadSettings().mailView).toBe('awaiting')
+  })
+
   it('知らない値はサービス別に戻す', () => {
     stubSaved(JSON.stringify({ mailView: 'unread' }))
     expect(loadSettings().mailView).toBe('services')
