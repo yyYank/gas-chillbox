@@ -4,10 +4,11 @@ import { MailAwaiting, type ThreadsRes } from './components/MailAwaiting'
 import { MailSenders } from './components/MailSenders'
 import { MailServices } from './components/MailServices'
 import { Month } from './components/Month'
+import { RulesBar } from './components/RulesBar'
 import { loadCache, saveCache } from './lib/cache'
 import { call } from './lib/gas'
 import type { Mail } from './lib/mail'
-import { addRule, monthRange } from './lib/month'
+import { monthRange } from './lib/month'
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, stepFontScale } from './lib/settings'
 import { addDays, pageCount, pageDays, sod } from './lib/time'
 import type { Ev, InitRes, MailView, Settings } from './lib/types'
@@ -27,7 +28,6 @@ export function App() {
   const loadingMore = useRef(false)
   // 月表示：ルールは GAS 側に保存。月ごとの予定は1日から末日まで別に読む
   const [rules, setRules] = useState<string[] | null>(null)
-  const [ruleInput, setRuleInput] = useState('')
   const [monthEvents, setMonthEvents] = useState<Record<number, Ev[]>>({})
   const [monthPages, setMonthPages] = useState(3)
   const monthLoading = useRef(new Set<number>())
@@ -375,39 +375,7 @@ export function App() {
         </div>
       )}
 
-      {cal && view === 'month' && (
-        <form
-          id="rules"
-          onSubmit={(e) => {
-            e.preventDefault()
-            const next = addRule(rules ?? [], ruleInput)
-            if (next !== rules) changeRules(next)
-            setRuleInput('')
-          }}
-        >
-          <span className="label">含む</span>
-          {(rules ?? []).map((r) => (
-            <button
-              key={r}
-              type="button"
-              className="rule interactive"
-              aria-label={`ルール「${r}」を消す`}
-              onClick={() => changeRules((rules ?? []).filter((x) => x !== r))}
-            >
-              {r} <span aria-hidden="true">×</span>
-            </button>
-          ))}
-          <input
-            value={ruleInput}
-            onChange={(e) => setRuleInput(e.target.value)}
-            placeholder="言葉を追加"
-            aria-label="ルールに足す言葉"
-          />
-          <button type="submit" className="add interactive" disabled={!ruleInput.trim()}>
-            追加
-          </button>
-        </form>
-      )}
+      {cal && view === 'month' && <RulesBar rules={rules ?? []} onChange={changeRules} />}
 
       {cal ? (
         <main
