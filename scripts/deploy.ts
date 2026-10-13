@@ -1,14 +1,14 @@
 // push して、既存のウェブアプリのデプロイを新しいバージョンに更新する（URL は変わらない）。
 // まだデプロイが無ければ新規に作る。デプロイ ID は手元に保存せず、毎回リモートに聞く。
 //
-// usage: node scripts/deploy.mjs <project-dir>
+// usage: node scripts/deploy.ts <project-dir>
 
 import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 
 const dir = process.argv[2];
 if (!dir) {
-  console.error('usage: node scripts/deploy.mjs <project-dir>');
+  console.error('usage: node scripts/deploy.ts <project-dir>');
   process.exit(1);
 }
 

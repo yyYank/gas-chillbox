@@ -4,7 +4,7 @@
 // 手元に pull するので、そのまま src/ で実行すると自分のコードが上書きされる。
 // 一時ディレクトリで作成して scriptId だけ受け取り、.clasp.json は自前で書く。
 //
-// usage: node scripts/setup.mjs <project-dir> <title>
+// usage: node scripts/setup.ts <project-dir> <title>
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -13,7 +13,7 @@ import { join, resolve } from 'node:path';
 
 const [dir, title] = process.argv.slice(2);
 if (!dir || !title) {
-  console.error('usage: node scripts/setup.mjs <project-dir> <title>');
+  console.error('usage: node scripts/setup.ts <project-dir> <title>');
   process.exit(1);
 }
 

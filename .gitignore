@@ -23,3 +23,5 @@ node_modules/
 .clasp.json
 .clasprc.json
 .DS_Store
+# server/Code.ts から pnpm run build で作る
+viewer/src/Code.js
