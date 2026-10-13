@@ -77,6 +77,13 @@ button {
 #hud-date.today small {
   color: rgb(var(--accent));
 }
+#hud-date small.sat {
+  color: rgb(var(--day-sat-on-dark));
+}
+#hud-date small.sun,
+#hud-date small.holiday {
+  color: rgb(var(--day-sun-on-dark));
+}
 #band {
   flex: 1;
   min-width: 0;
@@ -240,18 +247,24 @@ button {
   scroll-snap-stop: always;
   overflow: hidden;
 }
-/* 1週間表示：今日から7日を縦に並べ、横スクロールは7行まとめて動かす */
-#world.week {
+/* 1週間表示：7日を縦に並べた1画面を1ページとし、横スワイプで週を送る */
+.week-page {
+  flex: 0 0 100vw;
+  width: 100vw;
+  height: 100%;
+  display: flex;
   flex-direction: column;
-  scroll-snap-type: none;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 #world.week .day {
   flex: 1 1 0;
+  width: 100%;
   min-height: 0;
   height: auto;
   scroll-snap-align: none;
   --block: clamp(14px, 4vh, 28px);
-  --soil-h: 14%;
+  --soil-h: 14px;
   border-bottom: 1px solid rgb(var(--border));
 }
 #world.week .wall {
@@ -260,16 +273,78 @@ button {
 #world.week .track {
   right: 0;
 }
-.rowdate {
+/* 行の頭：日付と終日予定を1行に並べる */
+#world.week .allday {
   z-index: 4;
-  position: absolute;
-  top: 4px;
-  left: 6px;
-  font-size: 12px;
+  top: 2px;
+  left: 4px;
+  right: 4px;
+  gap: 3px;
+  align-items: center;
+}
+#world.week .allday span {
+  font-size: 10px;
+  padding: 0 4px;
+  line-height: 1.5;
+}
+#world.week .allday .rowdate {
+  padding: 0 2px 0 0;
+  border: 0;
+  background: none;
+  font-size: 11px;
   color: rgb(var(--muted));
 }
-.rowdate.today {
+#world.week .allday .rowdate.today {
   color: rgb(var(--text));
+}
+#world.week .allday .rowdate.sat {
+  color: rgb(var(--day-sat));
+}
+#world.week .allday .rowdate.sun,
+#world.week .allday .rowdate.holiday {
+  color: rgb(var(--day-sun));
+}
+#world.week .allday .rowdate small {
+  color: inherit;
+}
+/* 土日祝の行をうっすら色付けする */
+#world.week .day.sat::after,
+#world.week .day.sun::after,
+#world.week .day.holiday::after {
+  content: "";
+  z-index: 1;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: rgb(var(--day-sat) / 0.07);
+}
+#world.week .day.sun::after,
+#world.week .day.holiday::after {
+  background: rgb(var(--day-sun) / 0.07);
+}
+#world.week .allday .rowdate small {
+  font-size: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+#world.week .tl {
+  bottom: 1px;
+  font-size: 9px;
+  line-height: 1;
+}
+/* 予定名は全文を小さく出す。時刻は出さない */
+#world.week .flag {
+  min-width: 0;
+  max-width: 34%;
+  padding: 1px 4px;
+  font-size: 10px;
+  line-height: 1.2;
+  border-radius: var(--r-sm);
+  box-shadow: 0 1px 2px rgb(var(--text) / 0.18);
+}
+#world.week .flag small {
+  display: none;
 }
 .day.gate-day {
   --wall: var(--gate);
@@ -346,8 +421,12 @@ button {
   letter-spacing: 0.1em;
   padding: 10px 0 0 4px;
 }
-.wall .wl.hol {
-  color: #f2a58a;
+.wall .wl.sat {
+  color: rgb(var(--day-sat-on-dark));
+}
+.wall .wl.sun,
+.wall .wl.holiday {
+  color: rgb(var(--day-sun-on-dark));
 }
 .gate-day .wall {
   background: rgb(var(--text));

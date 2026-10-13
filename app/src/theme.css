@@ -31,6 +31,12 @@
   --event-work: 42 46 54;
   --event-private: 47 143 134;
 
+  /* 曜日：土曜は青、日曜・祝日は赤。暗い背景の上では明るい方を使う */
+  --day-sat: 37 99 199;
+  --day-sun: 196 52 44;
+  --day-sat-on-dark: 140 180 245;
+  --day-sun-on-dark: 242 165 138;
+
   /* Shape */
   --r-sm: 6px;
   --r-md: 10px;

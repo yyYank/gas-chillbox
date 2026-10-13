@@ -31,5 +31,7 @@ export interface Settings {
   from: number
   to: number
   zoom: number
-  view: 'day' | 'week'
+  view: View
 }
+
+export type View = 'day' | 'five' | 'weekdays' | 'week'

@@ -1,11 +1,12 @@
 import { useLayoutEffect, useRef } from 'react'
-import { addDays, hm, hours, md, minOf, nowMin, WD } from '../lib/time'
+import { addDays, dayType, hm, hours, md, minOf, nowMin, WD } from '../lib/time'
 import type { Duties, Ev, Settings } from '../lib/types'
 
 const MIN_GAP = 60 // これ未満の空きは表示しない（分）
 const FLAG_BASE = 44
 const FLAG_GAP = 6
 const FLAG_BASE_COMPACT = 2
+const FLAG_GAP_COMPACT = 2
 
 interface Props {
   index: number
@@ -53,11 +54,31 @@ export function Day({ index, today, events, duties, settings, onToast, onCopy, c
     const bars = track.querySelectorAll<HTMLElement>('.blk')
     const flags = track.querySelectorAll<HTMLElement>('.flag')
     const placed: { l: number; r: number; top: number }[] = []
+    // 1週間表示は行が低いので積まずに横へずらす。右端からはみ出す分は左へ押し戻す
+    if (compact) {
+      const ls: number[] = []
+      let edge = 0
+      flags.forEach((f) => {
+        f.style.left = `${f.dataset.l}%`
+        f.style.bottom = `calc(var(--ground) + ${FLAG_BASE_COMPACT}px)`
+        ls.push(Math.max(f.offsetLeft, edge))
+        edge = ls[ls.length - 1] + f.offsetWidth + FLAG_GAP_COMPACT
+      })
+      let limit = track.clientWidth
+      for (let i = flags.length - 1; i >= 0; i--) {
+        ls[i] = Math.max(0, Math.min(ls[i], limit - flags[i].offsetWidth))
+        limit = ls[i] - FLAG_GAP_COMPACT
+      }
+      flags.forEach((f, i) => {
+        f.style.left = `${ls[i]}px`
+      })
+      return
+    }
     flags.forEach((f, i) => {
       const l = f.offsetLeft
       const r = l + f.offsetWidth
-      let y = compact ? FLAG_BASE_COMPACT : FLAG_BASE
-      if (!compact) for (const q of placed) if (l < q.r && r > q.l) y = Math.max(y, q.top + FLAG_GAP)
+      let y = FLAG_BASE
+      for (const q of placed) if (l < q.r && r > q.l) y = Math.max(y, q.top + FLAG_GAP)
       f.style.bottom = `calc(var(--ground) + ${y}px)`
       const b = bars[i]
       if (b) b.style.height = `${y + 8}px`
@@ -78,13 +99,15 @@ export function Day({ index, today, events, duties, settings, onToast, onCopy, c
   }
   const dayLabel = `${md(ds)}(${WD[new Date(ds).getDay()]})`
 
-  const holiday = events.some((e) => e.kind === 'holiday' && e.start < addDays(de, 1) && e.end > de)
+  const type = dayType(ds, events)
+  const nextType = dayType(de, events)
+  const holiday = nextType === 'holiday'
   const todayMonth = new Date(today).getMonth()
   const ticks: number[] = []
   for (let t = h0; t < h1; t += settings.step) ticks.push(t)
 
   return (
-    <section className={`day${isGate ? ' gate-day' : ''}${compact ? ' compact' : ''}`} data-i={index}>
+    <section className={`day ${type}${isGate ? ' gate-day' : ''}${compact ? ' compact' : ''}`} data-i={index}>
       <div className="track" ref={trackRef}>
         <div className="sky" style={{ left: 0, width: '33.34%', background: 'rgb(var(--bg))' }} />
         <div className="sky" style={{ left: '33.33%', width: '33.34%', background: 'rgb(var(--surface))' }} />
@@ -103,14 +126,13 @@ export function Day({ index, today, events, duties, settings, onToast, onCopy, c
           </div>
         ))}
 
-        {compact && (
-          <div className={`rowdate px${isToday ? ' today' : ''}`}>
-            {md(ds)} <small>{WD[new Date(ds).getDay()]}</small>
-          </div>
-        )}
-
-        {allDay.length > 0 && (
+        {(compact || allDay.length > 0) && (
           <div className="allday">
+            {compact && (
+              <span className={`rowdate px ${type}${isToday ? ' today' : ''}`}>
+                {md(ds)} <small>{WD[new Date(ds).getDay()]}</small>
+              </span>
+            )}
             {allDay.map((e) => (
               <span key={e.id} className={e.kind === 'holiday' ? 'holiday' : undefined}>
                 {e.title}
@@ -119,26 +141,27 @@ export function Day({ index, today, events, duties, settings, onToast, onCopy, c
           </div>
         )}
 
-        {gaps.map((g) => {
-          const left = pct(g[0])
-          const width = pct(g[1]) - left
-          const text =
-            g[1] >= h1 * 60
-              ? `${dayLabel} ${hm(g[0])}以降 空いてます`
-              : `${dayLabel} ${hm(g[0])}〜${hm(g[1])} 空いてます`
-          return (
-            <button
-              key={`${g[0]}-${g[1]}`}
-              type="button"
-              className="free interactive"
-              style={{ left: `${left + 0.6}%`, width: `${Math.max(0, width - 1.2)}%` }}
-              aria-label={text}
-              onClick={() => onCopy(text)}
-            >
-              {width < 8 ? '空' : `空き ${hours(g[1] - g[0])}`}
-            </button>
-          )
-        })}
+        {!compact &&
+          gaps.map((g) => {
+            const left = pct(g[0])
+            const width = pct(g[1]) - left
+            const text =
+              g[1] >= h1 * 60
+                ? `${dayLabel} ${hm(g[0])}以降 空いてます`
+                : `${dayLabel} ${hm(g[0])}〜${hm(g[1])} 空いてます`
+            return (
+              <button
+                key={`${g[0]}-${g[1]}`}
+                type="button"
+                className="free interactive"
+                style={{ left: `${left + 0.6}%`, width: `${Math.max(0, width - 1.2)}%` }}
+                aria-label={text}
+                onClick={() => onCopy(text)}
+              >
+                {width < 8 ? '空' : `空き ${hours(g[1] - g[0])}`}
+              </button>
+            )
+          })}
 
         {/* L1 柱＝予定の時間 */}
         {timed.map((x) => (
@@ -159,7 +182,12 @@ export function Day({ index, today, events, duties, settings, onToast, onCopy, c
               <span
                 key={x.e.id}
                 className="flag px"
-                style={{ left: `${pct(x.a)}%`, width: `${pct(x.b) - pct(x.a)}%` }}
+                data-l={pct(x.a)}
+                style={
+                  compact
+                    ? { left: `${pct(x.a)}%` }
+                    : { left: `${pct(x.a)}%`, width: `${pct(x.b) - pct(x.a)}%` }
+                }
               >
                 <span className="t">{x.e.title.replace(/^\[Slack\]\s*/, '')}</span>
                 <small>{`${hm(x.a)}–${hm(x.b)}${x.e.tentative ? ' 仮' : ''}`}</small>
@@ -199,7 +227,7 @@ export function Day({ index, today, events, duties, settings, onToast, onCopy, c
             )}
           </>
         ) : (
-          <div className={`wl px${holiday || nextDay.getDay() === 0 ? ' hol' : ''}`}>
+          <div className={`wl px ${nextType}`}>
             {`${md(de)} ${WD[nextDay.getDay()]}${holiday ? '・祝' : ''}`}
           </div>
         )}

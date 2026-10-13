@@ -3,7 +3,7 @@ import { Day } from './components/Day'
 import { loadCache, saveCache } from './lib/cache'
 import { call } from './lib/gas'
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from './lib/settings'
-import { addDays, md, sod, WD, weekDays } from './lib/time'
+import { addDays, dayType, md, pageCount, pageDays, sod, WD } from './lib/time'
 import type { Duties, Ev, InitRes, Settings } from './lib/types'
 
 const FIRST_DAYS = 21
@@ -103,9 +103,15 @@ export function App() {
   const onScroll = useCallback(() => {
     const w = worldRef.current
     if (!w) return
-    setIndex(Math.round(w.scrollLeft / dayW()))
+    const view = settings.view
+    if (view === 'day') setIndex(Math.round(w.scrollLeft / dayW()))
+    else {
+      // 複数日の表示は1画面＝1ページ。ズームは効かないので画面幅で割り、ページ先頭の日を指す
+      const first = pageDays(view, today, Math.round(w.scrollLeft / w.clientWidth))[0]
+      setIndex(Math.max(0, Math.round((first - today) / 86400000)))
+    }
     if (w.scrollLeft + w.clientWidth * 4 > w.scrollWidth) loadMore()
-  }, [dayW, loadMore])
+  }, [dayW, loadMore, settings.view, today])
 
   useLayoutEffect(() => {
     document.documentElement.style.setProperty('--zoom', String(settings.zoom))
@@ -135,7 +141,21 @@ export function App() {
   const t = new Date(today)
   const monthsAhead = (d.getFullYear() - t.getFullYear()) * 12 + d.getMonth() - t.getMonth()
   const lastDate = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate()
-  const week = settings.view === 'week'
+  const view = settings.view
+  const week = view !== 'day'
+  const dayOf = (ds: number, compact: boolean) => (
+    <Day
+      key={ds}
+      index={Math.round((ds - today) / 86400000)}
+      today={today}
+      events={events}
+      duties={duties}
+      settings={settings}
+      onToast={showToast}
+      onCopy={copy}
+      compact={compact}
+    />
+  )
   const hourOptions = Array.from({ length: 25 }, (_, i) => i)
 
   return (
@@ -148,7 +168,8 @@ export function App() {
           aria-label="今日に戻る"
           onClick={() => worldRef.current?.scrollTo({ left: 0, behavior: 'smooth' })}
         >
-          {md(addDays(today, index))} <small>{WD[d.getDay()]}</small>
+          {md(addDays(today, index))}{' '}
+          <small className={dayType(addDays(today, index), events)}>{WD[d.getDay()]}</small>
         </button>
 
         <div id="band" role="list">
@@ -265,6 +286,8 @@ export function App() {
               {(
                 [
                   ['day', '1日'],
+                  ['five', '5日'],
+                  ['weekdays', '平日'],
                   ['week', '1週間'],
                 ] as const
               ).map(([v, label]) => (
@@ -290,7 +313,8 @@ export function App() {
                 <button
                   key={v}
                   type="button"
-                  aria-pressed={settings.zoom === v}
+                  aria-pressed={!week && settings.zoom === v}
+                  disabled={week}
                   onClick={() => change({ zoom: v })}
                 >
                   {`${v}x`}
@@ -306,24 +330,20 @@ export function App() {
 
       <main
         id="world"
-        className={[settings.zoom > 1 && 'zoomed', week && 'week'].filter(Boolean).join(' ') || undefined}
+        className={week ? 'week' : settings.zoom > 1 ? 'zoomed' : undefined}
         aria-label="予定"
         ref={worldRef}
-        onScroll={week ? undefined : onScroll}
+        onScroll={onScroll}
       >
-        {(week ? weekDays(today) : Array.from({ length: days }, (_, i) => addDays(today, i))).map((ds, i) => (
-          <Day
-            key={ds}
-            index={i}
-            today={today}
-            events={events}
-            duties={duties}
-            settings={settings}
-            onToast={showToast}
-            onCopy={copy}
-            compact={week}
-          />
-        ))}
+        {view !== 'day'
+          ? Array.from({ length: pageCount(view, today, days) }, (_, p) => pageDays(view, today, p)).map(
+              (ds) => (
+                <div key={ds[0]} className="week-page">
+                  {ds.map((d) => dayOf(d, true))}
+                </div>
+              ),
+            )
+          : Array.from({ length: days }, (_, i) => dayOf(addDays(today, i), false))}
       </main>
 
       {loading && (

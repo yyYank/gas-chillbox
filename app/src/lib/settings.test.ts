@@ -18,6 +18,13 @@ describe('loadSettings の表示モード', () => {
     expect(loadSettings().view).toBe('week')
   })
 
+  it('保存された 5日表示（five）と平日表示（weekdays）を読み戻せる', () => {
+    stubSaved(JSON.stringify({ view: 'five' }))
+    expect(loadSettings().view).toBe('five')
+    stubSaved(JSON.stringify({ view: 'weekdays' }))
+    expect(loadSettings().view).toBe('weekdays')
+  })
+
   it('知らない値が保存されていたら day に戻す', () => {
     stubSaved(JSON.stringify({ view: 'month' }))
     expect(loadSettings().view).toBe('day')
