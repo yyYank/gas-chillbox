@@ -32,6 +32,8 @@ export interface Settings {
   to: number
   zoom: number
   view: View
+  /** 文字の倍率（1 = 100%） */
+  fontScale: number
 }
 
 export type View = 'day' | 'five' | 'weekdays' | 'week'

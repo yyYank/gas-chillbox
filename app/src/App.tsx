@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { type CSSProperties, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Day } from './components/Day'
 import { loadCache, saveCache } from './lib/cache'
 import { call } from './lib/gas'
-import { DEFAULT_SETTINGS, loadSettings, saveSettings } from './lib/settings'
+import { DEFAULT_SETTINGS, loadSettings, saveSettings, stepFontScale } from './lib/settings'
 import { addDays, dayType, md, pageCount, pageDays, sod, WD } from './lib/time'
 import type { Duties, Ev, InitRes, Settings } from './lib/types'
 
@@ -159,7 +159,8 @@ export function App() {
   const hourOptions = Array.from({ length: 25 }, (_, i) => i)
 
   return (
-    <>
+    // 文字の倍率はここで流す。:root に後から入れると、各日の札が古い文字サイズで測られてしまう
+    <div className="app" style={{ '--fs': settings.fontScale } as CSSProperties}>
       <header id="hud">
         <button
           type="button"
@@ -307,6 +308,28 @@ export function App() {
             </div>
           </div>
           <div className="row">
+            <span>文字</span>
+            <div className="seg">
+              <button
+                type="button"
+                aria-label="文字を小さく"
+                disabled={settings.fontScale <= 0.8}
+                onClick={() => change({ fontScale: stepFontScale(settings.fontScale, -1) })}
+              >
+                −
+              </button>
+              <span className="fs-value">{`${Math.round(settings.fontScale * 100)}%`}</span>
+              <button
+                type="button"
+                aria-label="文字を大きく"
+                disabled={settings.fontScale >= 1.6}
+                onClick={() => change({ fontScale: stepFontScale(settings.fontScale, 1) })}
+              >
+                ＋
+              </button>
+            </div>
+          </div>
+          <div className="row">
             <span>ズーム</span>
             <div className="seg">
               {[1, 1.5, 2, 3].map((v) => (
@@ -354,6 +377,6 @@ export function App() {
       <div id="toast" className={toast ? 'show' : undefined} role="status" aria-live="polite">
         {toast}
       </div>
-    </>
+    </div>
   )
 }

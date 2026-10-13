@@ -58,9 +58,23 @@ export function Day({ index, today, events, duties, settings, onToast, onCopy, c
     if (compact) {
       const ls: number[] = []
       let edge = 0
+      // 行の頭（日付と終日予定）にかぶるほど背が高い札は、横に広げて行数を減らす
+      const head = track.querySelector<HTMLElement>('.allday')
+      const top = head ? head.offsetTop + head.offsetHeight + FLAG_GAP_COMPACT : 0
       flags.forEach((f) => {
-        f.style.left = `${f.dataset.l}%`
+        // 左端に置いて測る（右端に近いと幅が広がらないため）。広がらなくなったら打ち切る
+        f.style.left = '0px'
         f.style.bottom = `calc(var(--ground) + ${FLAG_BASE_COMPACT}px)`
+        f.style.maxWidth = ''
+        f.style.width = ''
+        for (let w = f.offsetWidth; f.offsetTop < top && w < track.clientWidth; ) {
+          f.style.maxWidth = `${Math.min(track.clientWidth, w + 40)}px`
+          if (f.offsetWidth <= w) break
+          w = f.offsetWidth
+        }
+        // 右端寄りに置くと使える幅が減って札が縮むので、測った幅で固定してから戻す
+        f.style.width = `${f.offsetWidth}px`
+        f.style.left = `${f.dataset.l}%`
         ls.push(Math.max(f.offsetLeft, edge))
         edge = ls[ls.length - 1] + f.offsetWidth + FLAG_GAP_COMPACT
       })

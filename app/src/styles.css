@@ -6,6 +6,8 @@
   --strip: 2px;
   --ground: calc(var(--soil-h) + var(--strip));
   --zoom: 1;
+  /* 文字の倍率。設定の「文字 − / ＋」で変わる */
+  --fs: 1;
   --lbl: 92px;
   --block: clamp(40px, 11vh, 72px);
 }
@@ -29,6 +31,10 @@ body {
   overflow: hidden;
 }
 
+/* 文字の倍率を流すだけの入れ物。並びには関わらない */
+.app {
+  display: contents;
+}
 /* React は #root に描くので、画面の縦分割はここで持つ */
 #root {
   display: flex;
@@ -64,13 +70,13 @@ button {
   color: rgb(var(--bg));
 }
 #hud-date {
-  font-size: 20px;
+  font-size: calc(20px * var(--fs));
   white-space: nowrap;
   min-width: 88px;
   min-height: 44px;
 }
 #hud-date small {
-  font-size: 13px;
+  font-size: calc(13px * var(--fs));
   margin-left: 4px;
   color: rgb(var(--border));
 }
@@ -105,20 +111,20 @@ button {
   font-weight: 700;
   color: rgb(var(--warning));
   white-space: nowrap;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs));
   padding: 0 2px;
 }
 #band .sep {
   color: rgb(var(--border));
 }
 #band .none {
-  font-size: 12px;
+  font-size: calc(12px * var(--fs));
   color: rgb(var(--muted));
   white-space: nowrap;
 }
 .chip {
   white-space: nowrap;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs));
   padding: 0 8px;
   height: 30px;
   border-radius: var(--r-sm);
@@ -142,13 +148,13 @@ button {
 #gate {
   white-space: nowrap;
   text-align: right;
-  font-size: 11px;
+  font-size: calc(11px * var(--fs));
   color: rgb(var(--border));
   line-height: 1.15;
   min-width: 76px;
 }
 #hud-set {
-  font-size: 18px;
+  font-size: calc(18px * var(--fs));
   min-width: 44px;
   min-height: 44px;
   color: rgb(var(--border));
@@ -174,7 +180,7 @@ button {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs));
   flex-wrap: wrap;
 }
 #settings .row > span {
@@ -191,7 +197,16 @@ button {
   border-radius: var(--r-sm);
   background: rgba(255, 255, 255, 0.12);
   color: rgb(var(--bg));
-  font-size: 13px;
+  font-size: calc(13px * var(--fs));
+}
+#settings .seg button:disabled {
+  opacity: 0.35;
+}
+#settings .seg .fs-value {
+  min-width: 52px;
+  align-self: center;
+  text-align: center;
+  color: rgb(var(--bg));
 }
 #settings .seg button[aria-pressed="true"] {
   background: rgb(var(--accent));
@@ -203,7 +218,7 @@ button {
   border-radius: var(--r-sm);
   background: rgba(255, 255, 255, 0.12);
   color: rgb(var(--bg));
-  font-size: 13px;
+  font-size: calc(13px * var(--fs));
   border: 0;
 }
 #settings .close {
@@ -213,11 +228,11 @@ button {
   border-radius: var(--r-sm);
   background: rgba(255, 255, 255, 0.12);
   color: rgb(var(--bg));
-  font-size: 13px;
+  font-size: calc(13px * var(--fs));
 }
 #gate span {
   display: block;
-  font-size: 17px;
+  font-size: calc(17px * var(--fs));
   color: rgb(var(--bg));
 }
 
@@ -283,7 +298,7 @@ button {
   align-items: center;
 }
 #world.week .allday span {
-  font-size: 10px;
+  font-size: calc(10px * var(--fs));
   padding: 0 4px;
   line-height: 1.5;
 }
@@ -291,7 +306,7 @@ button {
   padding: 0 2px 0 0;
   border: 0;
   background: none;
-  font-size: 11px;
+  font-size: calc(11px * var(--fs));
   color: rgb(var(--muted));
 }
 #world.week .allday .rowdate.today {
@@ -323,14 +338,14 @@ button {
   background: rgb(var(--day-sun) / 0.07);
 }
 #world.week .allday .rowdate small {
-  font-size: 10px;
+  font-size: calc(10px * var(--fs));
   padding: 0;
   border: 0;
   background: none;
 }
 #world.week .tl {
   bottom: 1px;
-  font-size: 9px;
+  font-size: calc(9px * var(--fs));
   line-height: 1;
 }
 /* 予定名は全文を小さく出す。時刻は出さない */
@@ -338,7 +353,7 @@ button {
   min-width: 0;
   max-width: 34%;
   padding: 1px 4px;
-  font-size: 10px;
+  font-size: calc(10px * var(--fs));
   line-height: 1.2;
   border-radius: var(--r-sm);
   box-shadow: 0 1px 2px rgb(var(--text) / 0.18);
@@ -396,7 +411,7 @@ button {
   z-index: 0;
   position: absolute;
   bottom: calc(var(--soil-h) - 24px);
-  font-size: 11px;
+  font-size: calc(11px * var(--fs));
   color: rgb(var(--muted));
   transform: translateX(-50%);
 }
@@ -417,7 +432,7 @@ button {
 }
 .wall .wl {
   writing-mode: vertical-rl;
-  font-size: 14px;
+  font-size: calc(14px * var(--fs));
   letter-spacing: 0.1em;
   padding: 10px 0 0 4px;
 }
@@ -433,7 +448,7 @@ button {
   border-top: 8px solid rgb(var(--accent));
 }
 .gate-day .wall .month {
-  font-size: 30px;
+  font-size: calc(30px * var(--fs));
   writing-mode: vertical-rl;
   letter-spacing: 0.12em;
   position: absolute;
@@ -442,7 +457,7 @@ button {
 }
 .gate-day .wall .nextband {
   writing-mode: vertical-rl;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs));
   line-height: 1.5;
   color: rgb(var(--border));
   position: absolute;
@@ -482,7 +497,7 @@ button {
   box-shadow:
     0 4px 12px rgb(var(--text) / 0.18),
     0 1px 2px rgb(var(--text) / 0.12);
-  font-size: 13px;
+  font-size: calc(13px * var(--fs));
   font-weight: 700;
   line-height: 1.25;
   text-align: left;
@@ -494,7 +509,7 @@ button {
 }
 .flag small {
   display: block;
-  font-size: 11px;
+  font-size: calc(11px * var(--fs));
   font-weight: 400;
   color: #5c5750;
   font-family: "Zen Kaku Gothic New", sans-serif;
@@ -518,7 +533,7 @@ button {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs));
   color: rgb(var(--muted));
   border-bottom: 1px dotted rgb(var(--border));
   padding-bottom: 3px;
@@ -544,7 +559,7 @@ button {
   gap: 6px;
 }
 .allday span {
-  font-size: 12px;
+  font-size: calc(12px * var(--fs));
   padding: 3px 8px;
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.7);
@@ -580,7 +595,7 @@ button {
   position: absolute;
   top: 38px;
   left: 8px;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs));
   color: rgb(var(--accent));
   white-space: nowrap;
 }
@@ -606,7 +621,7 @@ button {
   border: 2px solid rgb(var(--warning));
   border-radius: 3px;
   padding: 5px 9px;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs));
   line-height: 1.3;
   text-align: center;
   max-width: 150px;
@@ -616,7 +631,7 @@ button {
 }
 .sign .board small {
   display: block;
-  font-size: 10px;
+  font-size: calc(10px * var(--fs));
   color: #6b5a2c;
 }
 .sign .post {
@@ -636,7 +651,7 @@ button {
   color: rgb(var(--bg));
   padding: 10px 14px;
   border-radius: var(--r-md);
-  font-size: 13px;
+  font-size: calc(13px * var(--fs));
   max-width: 90vw;
   opacity: 0;
   pointer-events: none;
@@ -655,5 +670,5 @@ button {
   align-items: center;
   justify-content: center;
   color: rgb(var(--muted));
-  font-size: 14px;
+  font-size: calc(14px * var(--fs));
 }
