@@ -6,9 +6,14 @@
  */
 
 // 個人情報はリポジトリに入れない。GAS エディタの「プロジェクトの設定 > スクリプト プロパティ」に置く。
-//   WORK_CALENDAR_ID : 共有されている仕事カレンダーの ID（通常は仕事のメールアドレス）
+//   WORK_CALENDAR_ID   : 共有されている仕事カレンダーの ID（通常は仕事のメールアドレス）
+//   EXTRA_CALENDAR_IDS : 追加で重ねるカレンダーの ID（カンマ区切り。私用扱いで描く）
 const PROPS = PropertiesService.getScriptProperties();
 const WORK_CALENDAR_ID = PROPS.getProperty('WORK_CALENDAR_ID');
+const EXTRA_CALENDAR_IDS = (PROPS.getProperty('EXTRA_CALENDAR_IDS') || '')
+  .split(',')
+  .map(function (s) { return s.trim(); })
+  .filter(Boolean);
 
 const CONFIG = {
   // 表示するカレンダー。kind: 'private' | 'work' | 'holiday'
@@ -16,6 +21,7 @@ const CONFIG = {
     { id: 'primary', kind: 'private' },
     // selfEmail があると、自分が「不参加」にした会議を描かない。
     WORK_CALENDAR_ID ? { id: WORK_CALENDAR_ID, kind: 'work', selfEmail: WORK_CALENDAR_ID } : null,
+    ...EXTRA_CALENDAR_IDS.map(function (id) { return { id: id, kind: 'private' }; }),
     { id: 'ja.japanese#holiday@group.v.calendar.google.com', kind: 'holiday' },
   ].filter(Boolean),
   // 健診・予防接種・税金などを入れておく非表示カレンダーの名前
