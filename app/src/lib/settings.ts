@@ -11,7 +11,15 @@ export function stepFontScale(current: number, dir: 1 | -1): number {
   return Math.min(FONT_MAX * 10, Math.max(FONT_MIN * 10, n)) / 10
 }
 
-export const DEFAULT_SETTINGS: Settings = { step: 1, from: 6, to: 24, zoom: 1, view: 'day', fontScale: 1 }
+export const DEFAULT_SETTINGS: Settings = {
+  step: 1,
+  from: 6,
+  to: 24,
+  zoom: 1,
+  view: 'day',
+  source: 'calendar',
+  fontScale: 1,
+}
 
 export function loadSettings(): Settings {
   try {
@@ -21,6 +29,7 @@ export function loadSettings(): Settings {
     const next = { ...DEFAULT_SETTINGS }
     if (s.step === 1 || s.step === 2 || s.step === 3) next.step = s.step
     if (s.view && ['day', 'five', 'weekdays', 'week', 'month'].includes(s.view)) next.view = s.view
+    if (s.source === 'calendar' || s.source === 'mail') next.source = s.source
     if (typeof s.fontScale === 'number' && s.fontScale >= FONT_MIN && s.fontScale <= FONT_MAX)
       next.fontScale = s.fontScale
     if (s.zoom && [1, 1.5, 2, 3].includes(s.zoom)) next.zoom = s.zoom

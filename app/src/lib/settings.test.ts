@@ -70,3 +70,20 @@ describe('stepFontScale', () => {
     expect(stepFontScale(0.8, -1)).toBe(0.8)
   })
 })
+
+describe('loadSettings のタブ（ソース）', () => {
+  it('保存されていなければカレンダー', () => {
+    stubSaved(null)
+    expect(loadSettings().source).toBe('calendar')
+  })
+
+  it('保存されたメールのタブを読み戻せる', () => {
+    stubSaved(JSON.stringify({ source: 'mail' }))
+    expect(loadSettings().source).toBe('mail')
+  })
+
+  it('知らない値はカレンダーに戻す', () => {
+    stubSaved(JSON.stringify({ source: 'drive' }))
+    expect(loadSettings().source).toBe('calendar')
+  })
+})

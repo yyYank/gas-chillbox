@@ -32,8 +32,12 @@ export interface Settings {
   to: number
   zoom: number
   view: View
+  /** 上のタブ。どのソースを見ているか */
+  source: Source
   /** 文字の倍率（1 = 100%） */
   fontScale: number
 }
+
+export type Source = 'calendar' | 'mail'
 
 export type View = 'day' | 'five' | 'weekdays' | 'week' | 'month'

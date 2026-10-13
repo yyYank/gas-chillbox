@@ -5,7 +5,7 @@ import { loadCache, saveCache } from './lib/cache'
 import { call } from './lib/gas'
 import { addRule, monthRange } from './lib/month'
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, stepFontScale } from './lib/settings'
-import { addDays, dayType, md, pageCount, pageDays, sod, WD } from './lib/time'
+import { addDays, pageCount, pageDays, sod } from './lib/time'
 import type { Duties, Ev, InitRes, Settings } from './lib/types'
 
 const FIRST_DAYS = 21
@@ -19,7 +19,6 @@ export function App() {
   const [events, setEvents] = useState<Ev[]>([])
   const [duties, setDuties] = useState<Duties>(EMPTY_DUTIES)
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
-  const [index, setIndex] = useState(0)
   const [loading, setLoading] = useState('読み込み中…')
   const [toast, setToast] = useState('')
   const [panelOpen, setPanelOpen] = useState(false)
@@ -32,11 +31,6 @@ export function App() {
   const monthLoading = useRef(new Set<number>())
 
   useEffect(() => setSettings(loadSettings()), [])
-
-  const dayW = useCallback(() => {
-    const w = worldRef.current?.clientWidth ?? 1
-    return Math.max(1, w * settings.zoom)
-  }, [settings.zoom])
 
   const showToast = useCallback((text: string) => setToast(text), [])
   useEffect(() => {
@@ -116,14 +110,8 @@ export function App() {
       if (w.scrollLeft + w.clientWidth * 2 > w.scrollWidth) setMonthPages((n) => n + 1)
       return
     }
-    if (view === 'day') setIndex(Math.round(w.scrollLeft / dayW()))
-    else {
-      // 複数日の表示は1画面＝1ページ。ズームは効かないので画面幅で割り、ページ先頭の日を指す
-      const first = pageDays(view, today, Math.round(w.scrollLeft / w.clientWidth))[0]
-      setIndex(Math.max(0, Math.round((first - today) / 86400000)))
-    }
     if (w.scrollLeft + w.clientWidth * 4 > w.scrollWidth) loadMore()
-  }, [dayW, loadMore, settings.view, today])
+  }, [loadMore, settings.view])
 
   // 月表示に入ったらルールと、見えている月とその先の予定を読む
   useEffect(() => {
@@ -183,11 +171,8 @@ export function App() {
     })
   }
 
-  const d = new Date(addDays(today, index))
-  const t = new Date(today)
-  const monthsAhead = (d.getFullYear() - t.getFullYear()) * 12 + d.getMonth() - t.getMonth()
-  const lastDate = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate()
   const view = settings.view
+  const cal = settings.source === 'calendar'
   const week = view !== 'day'
   const dayOf = (ds: number, compact: boolean) => (
     <Day
@@ -208,82 +193,25 @@ export function App() {
     // 文字の倍率はここで流す。:root に後から入れると、各日の札が古い文字サイズで測られてしまう
     <div className="app" style={{ '--fs': settings.fontScale } as CSSProperties}>
       <header id="hud">
-        <button
-          type="button"
-          id="hud-date"
-          className={`px interactive${index === 0 ? ' today' : ''}`}
-          aria-label="今日に戻る"
-          onClick={() => worldRef.current?.scrollTo({ left: 0, behavior: 'smooth' })}
-        >
-          {md(addDays(today, index))}{' '}
-          <small className={dayType(addDays(today, index), events)}>{WD[d.getDay()]}</small>
-        </button>
-
-        <div id="band" role="list">
-          {monthsAhead === 0 ? (
-            <>
-              <span className="head px">{`${t.getMonth() + 1}月 ▶`}</span>
-              {duties.current.length === 0 && <span className="none">なし</span>}
-              {duties.current.map((x) => (
-                <button
-                  key={x.key}
-                  type="button"
-                  className="chip interactive"
-                  onClick={() => {
-                    setDuties((p) => ({ ...p, current: p.current.filter((y) => y.key !== x.key) }))
-                    call('markDone', [x.key]).then(
-                      () => showToast('済にしました'),
-                      () => showToast('保存できませんでした'),
-                    )
-                  }}
-                >
-                  {x.title}
-                  {x.months > 1 && <b>{`(${x.months}か月目)`}</b>}
-                </button>
-              ))}
-              {lastDate - t.getDate() < 7 && duties.next.length > 0 && (
-                <>
-                  <span className="sep">｜</span>
-                  <span className="head px">{`${((t.getMonth() + 1) % 12) + 1}月 ▶`}</span>
-                  {duties.next.map((x) => (
-                    <span key={x.key} className="chip next">
-                      {x.title}
-                    </span>
-                  ))}
-                </>
-              )}
-            </>
-          ) : monthsAhead === 1 ? (
-            <>
-              <span className="head px">{`${d.getMonth() + 1}月 ▶`}</span>
-              {duties.next.length === 0 && <span className="none">なし</span>}
-              {duties.next.map((x) => (
-                <span key={x.key} className="chip next">
-                  {x.title}
-                </span>
-              ))}
-            </>
-          ) : (
-            <>
-              <span className="head px">{`${d.getMonth() + 1}月`}</span>
-              <span className="none">まだ先</span>
-            </>
-          )}
+        <div id="tabs" role="tablist" aria-label="ソース">
+          {(
+            [
+              ['calendar', 'カレンダー'],
+              ['mail', 'メール'],
+            ] as const
+          ).map(([v, label]) => (
+            <button
+              key={v}
+              type="button"
+              role="tab"
+              aria-selected={settings.source === v}
+              className="interactive"
+              onClick={() => change({ source: v })}
+            >
+              {label}
+            </button>
+          ))}
         </div>
-
-        <div id="gate" className="px">
-          {index === 0 ? (
-            <>
-              {`${((t.getMonth() + 1) % 12) + 1}月の門まで`}
-              <span>{`${lastDate - t.getDate()}日`}</span>
-            </>
-          ) : (
-            <>
-              今日から<span>{`+${index}日`}</span>
-            </>
-          )}
-        </div>
-
         <button
           type="button"
           id="hud-set"
@@ -298,62 +226,65 @@ export function App() {
 
       {panelOpen && (
         <div id="settings" className="px">
-          <div className="row">
-            <span>目盛り</span>
-            <div className="seg">
-              {([1, 2, 3] as const).map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  aria-pressed={settings.step === v}
-                  onClick={() => change({ step: v })}
-                >
-                  {`${v}h`}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="row">
-            <span>時間帯</span>
-            <select value={settings.from} onChange={(e) => change({ from: Number(e.target.value) })}>
-              {hourOptions.map((v) => (
-                <option key={v} value={v}>{`${v}:00`}</option>
-              ))}
-            </select>
-            <span style={{ minWidth: 0 }}>〜</span>
-            <select value={settings.to} onChange={(e) => change({ to: Number(e.target.value) })}>
-              {hourOptions.map((v) => (
-                <option key={v} value={v}>{`${v}:00`}</option>
-              ))}
-            </select>
-          </div>
-          <div className="row">
-            <span>表示</span>
-            <div className="seg">
-              {(
-                [
-                  ['day', '1日'],
-                  ['five', '5日'],
-                  ['weekdays', '平日'],
-                  ['week', '1週間'],
-                  ['month', '月'],
-                ] as const
-              ).map(([v, label]) => (
-                <button
-                  key={v}
-                  type="button"
-                  aria-pressed={settings.view === v}
-                  onClick={() => {
-                    setIndex(0)
-                    worldRef.current?.scrollTo({ left: 0 })
-                    change({ view: v })
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
+          {cal && (
+            <>
+              <div className="row">
+                <span>目盛り</span>
+                <div className="seg">
+                  {([1, 2, 3] as const).map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      aria-pressed={settings.step === v}
+                      onClick={() => change({ step: v })}
+                    >
+                      {`${v}h`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="row">
+                <span>時間帯</span>
+                <select value={settings.from} onChange={(e) => change({ from: Number(e.target.value) })}>
+                  {hourOptions.map((v) => (
+                    <option key={v} value={v}>{`${v}:00`}</option>
+                  ))}
+                </select>
+                <span style={{ minWidth: 0 }}>〜</span>
+                <select value={settings.to} onChange={(e) => change({ to: Number(e.target.value) })}>
+                  {hourOptions.map((v) => (
+                    <option key={v} value={v}>{`${v}:00`}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="row">
+                <span>表示</span>
+                <div className="seg">
+                  {(
+                    [
+                      ['day', '1日'],
+                      ['five', '5日'],
+                      ['weekdays', '平日'],
+                      ['week', '1週間'],
+                      ['month', '月'],
+                    ] as const
+                  ).map(([v, label]) => (
+                    <button
+                      key={v}
+                      type="button"
+                      aria-pressed={settings.view === v}
+                      onClick={() => {
+                        worldRef.current?.scrollTo({ left: 0 })
+                        change({ view: v })
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
           <div className="row">
             <span>文字</span>
             <div className="seg">
@@ -376,29 +307,31 @@ export function App() {
               </button>
             </div>
           </div>
-          <div className="row">
-            <span>ズーム</span>
-            <div className="seg">
-              {[1, 1.5, 2, 3].map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  aria-pressed={!week && settings.zoom === v}
-                  disabled={week}
-                  onClick={() => change({ zoom: v })}
-                >
-                  {`${v}x`}
-                </button>
-              ))}
+          {cal && (
+            <div className="row">
+              <span>ズーム</span>
+              <div className="seg">
+                {[1, 1.5, 2, 3].map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    aria-pressed={!week && settings.zoom === v}
+                    disabled={week}
+                    onClick={() => change({ zoom: v })}
+                  >
+                    {`${v}x`}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
           <button type="button" className="close" onClick={() => setPanelOpen(false)}>
             閉じる
           </button>
         </div>
       )}
 
-      {view === 'month' && (
+      {cal && view === 'month' && (
         <form
           id="rules"
           onSubmit={(e) => {
@@ -432,35 +365,41 @@ export function App() {
         </form>
       )}
 
-      <main
-        id="world"
-        className={week ? 'week' : settings.zoom > 1 ? 'zoomed' : undefined}
-        aria-label="予定"
-        ref={worldRef}
-        onScroll={onScroll}
-      >
-        {view === 'month'
-          ? Array.from({ length: monthPages }, (_, p) => monthRange(today, p)).map(({ start }) => (
-              <Month
-                key={start}
-                start={start}
-                events={rules === null ? undefined : monthEvents[start]}
-                rules={rules ?? []}
-                onToast={showToast}
-              />
-            ))
-          : view !== 'day'
-            ? Array.from({ length: pageCount(view, today, days) }, (_, p) => pageDays(view, today, p)).map(
-                (ds) => (
-                  <div key={ds[0]} className="week-page">
-                    {ds.map((d) => dayOf(d, true))}
-                  </div>
-                ),
-              )
-            : Array.from({ length: days }, (_, i) => dayOf(addDays(today, i), false))}
-      </main>
+      {cal ? (
+        <main
+          id="world"
+          className={week ? 'week' : settings.zoom > 1 ? 'zoomed' : undefined}
+          aria-label="予定"
+          ref={worldRef}
+          onScroll={onScroll}
+        >
+          {view === 'month'
+            ? Array.from({ length: monthPages }, (_, p) => monthRange(today, p)).map(({ start }) => (
+                <Month
+                  key={start}
+                  start={start}
+                  events={rules === null ? undefined : monthEvents[start]}
+                  rules={rules ?? []}
+                  onToast={showToast}
+                />
+              ))
+            : view !== 'day'
+              ? Array.from({ length: pageCount(view, today, days) }, (_, p) => pageDays(view, today, p)).map(
+                  (ds) => (
+                    <div key={ds[0]} className="week-page">
+                      {ds.map((d) => dayOf(d, true))}
+                    </div>
+                  ),
+                )
+              : Array.from({ length: days }, (_, i) => dayOf(addDays(today, i), false))}
+        </main>
+      ) : (
+        <main id="mail" aria-label="メール">
+          <p className="month-empty">メールのビューは準備中です</p>
+        </main>
+      )}
 
-      {loading && (
+      {cal && loading && (
         <div id="loading" className="px">
           {loading}
         </div>

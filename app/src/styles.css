@@ -69,58 +69,23 @@ button {
   background: rgb(var(--text));
   color: rgb(var(--bg));
 }
-#hud-date {
-  font-size: calc(20px * var(--fs));
-  white-space: nowrap;
-  min-width: 88px;
-  min-height: 44px;
-}
-#hud-date small {
-  font-size: calc(13px * var(--fs));
-  margin-left: 4px;
-  color: rgb(var(--border));
-}
-#hud-date.today small {
-  color: rgb(var(--accent));
-}
-#hud-date small.sat {
-  color: rgb(var(--day-sat-on-dark));
-}
-#hud-date small.sun,
-#hud-date small.holiday {
-  color: rgb(var(--day-sun-on-dark));
-}
-#band {
+/* ソースのタブ（カレンダー｜メール） */
+#tabs {
   flex: 1;
-  min-width: 0;
-  height: 38px;
   display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 6px;
-  background: rgb(var(--accent-soft));
-  color: rgb(var(--accent-soft-foreground));
-  border-radius: var(--r-sm);
-  overflow-x: auto;
-  scrollbar-width: none;
+  align-self: stretch;
+  gap: 4px;
 }
-#band::-webkit-scrollbar {
-  display: none;
-}
-#band .head {
-  font-weight: 700;
-  color: rgb(var(--warning));
-  white-space: nowrap;
-  font-size: calc(13px * var(--fs));
-  padding: 0 2px;
-}
-#band .sep {
+#tabs button {
+  flex: 1;
+  border-bottom: 3px solid transparent;
   color: rgb(var(--border));
+  font-size: calc(15px * var(--fs));
+  text-align: center;
 }
-#band .none {
-  font-size: calc(12px * var(--fs));
-  color: rgb(var(--muted));
-  white-space: nowrap;
+#tabs button[aria-selected="true"] {
+  border-bottom-color: rgb(var(--accent));
+  color: rgb(var(--bg));
 }
 .chip {
   white-space: nowrap;
@@ -144,14 +109,6 @@ button {
 .chip.next {
   background: transparent;
   border: 1px dashed rgb(var(--warning));
-}
-#gate {
-  white-space: nowrap;
-  text-align: right;
-  font-size: calc(11px * var(--fs));
-  color: rgb(var(--border));
-  line-height: 1.15;
-  min-width: 76px;
 }
 #hud-set {
   font-size: calc(18px * var(--fs));
@@ -229,11 +186,6 @@ button {
   background: rgba(255, 255, 255, 0.12);
   color: rgb(var(--bg));
   font-size: calc(13px * var(--fs));
-}
-#gate span {
-  display: block;
-  font-size: calc(17px * var(--fs));
-  color: rgb(var(--bg));
 }
 
 /* 地面（横スクロール） */
