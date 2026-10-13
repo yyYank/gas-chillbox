@@ -130,6 +130,12 @@ function getThreads() {
   return { me, threads: list };
 }
 
+/** 登録サービス候補：件名の検索式（クライアントで組み立てる）に合うメールを全期間から */
+function getSignups(query: unknown) {
+  if (typeof query !== 'string' || query.indexOf('subject:(') !== 0) throw new Error('invalid query');
+  return getMails_(query, 500);
+}
+
 function getMails_(query: string, max: number) {
   const gmail = Gmail;
   if (!gmail?.Users?.Messages) throw new Error('Gmail の高度なサービスが有効になっていません');
@@ -165,22 +171,33 @@ function getMails_(query: string, max: number) {
   });
 }
 
-const RULES_KEY = 'rules:month';
+// ルール（含む言葉の一覧）。スマホと PC で共有するので UserProperties に置く
+//   month   : 月表示（予定のタイトル）
+//   signups : 登録サービス（メールの件名）
+const RULE_KINDS = ['month', 'signups'];
 
-/** 月表示のルール（タイトルに含む言葉の一覧）。スマホと PC で共有するので UserProperties に置く */
-function getRules(): string[] {
+function rulesKey_(kind: unknown) {
+  const k = kind === undefined ? 'month' : kind;
+  if (typeof k !== 'string' || RULE_KINDS.indexOf(k) === -1) throw new Error('invalid kind');
+  return `rules:${k}`;
+}
+
+/** 保存したルール。まだ一度も保存していなければ null（クライアントが最初の言葉を使う） */
+function getRules(kind?: unknown): string[] | null {
+  const raw = PropertiesService.getUserProperties().getProperty(rulesKey_(kind));
+  if (raw === null) return null;
   try {
-    const v = JSON.parse(PropertiesService.getUserProperties().getProperty(RULES_KEY) || '[]');
+    const v = JSON.parse(raw);
     return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
   } catch (_) {
     return [];
   }
 }
 
-function saveRules(rules: unknown) {
+function saveRules(rules: unknown, kind?: unknown) {
   if (!Array.isArray(rules) || rules.some((x) => typeof x !== 'string') || rules.length > 50)
     throw new Error('invalid rules');
-  PropertiesService.getUserProperties().setProperty(RULES_KEY, JSON.stringify(rules));
+  PropertiesService.getUserProperties().setProperty(rulesKey_(kind), JSON.stringify(rules));
   return true;
 }
 

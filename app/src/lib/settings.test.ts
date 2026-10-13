@@ -104,6 +104,11 @@ describe('loadSettings のメールの表示', () => {
     expect(loadSettings().mailView).toBe('awaiting')
   })
 
+  it('保存された登録サービスを読み戻せる', () => {
+    stubSaved(JSON.stringify({ mailView: 'signups' }))
+    expect(loadSettings().mailView).toBe('signups')
+  })
+
   it('知らない値はサービス別に戻す', () => {
     stubSaved(JSON.stringify({ mailView: 'unread' }))
     expect(loadSettings().mailView).toBe('services')

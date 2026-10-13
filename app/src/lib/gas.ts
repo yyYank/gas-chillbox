@@ -61,6 +61,28 @@ function mockDays(start: number, days: number): Ev[] {
 
 let mockRules: string[] = ['飲み']
 
+let mockSignupRules: string[] | null = null
+
+function mockSignups(): Mail[] {
+  const day = 86400000
+  const now = Date.now()
+  const m = (from: string, subject: string, daysAgo: number): Mail => ({
+    id: `${from}${daysAgo}`,
+    from,
+    subject,
+    date: now - daysAgo * day,
+    unsubscribe: '',
+  })
+  return [
+    m('note <info@note.com>', '【note】会員登録が完了しました', 12),
+    m('note <no-reply@mail.note.com>', 'ご登録ありがとうございます', 11),
+    m('Notion <team@makenotion.com>', 'Welcome to Notion', 95),
+    m('PayPay <info@paypay.ne.jp>', 'アカウント作成のお知らせ', 240),
+    m('Figma <no-reply@figma.com>', 'Verify your email', 400),
+    m('connpass <no-reply@connpass.com>', 'connpass への登録が完了しました', 720),
+  ]
+}
+
 function mockThreads(): { me: string; threads: ThreadInfo[] } {
   const me = 'me@example.com'
   const day = 86400000
@@ -128,12 +150,14 @@ function mockMails(): Mail[] {
 function mock(
   fn: string,
   args: unknown[],
-): InitRes | Ev[] | Mail[] | { me: string; threads: ThreadInfo[] } | string[] | boolean {
-  if (fn === 'getRules') return mockRules
+): InitRes | Ev[] | Mail[] | { me: string; threads: ThreadInfo[] } | string[] | null | boolean {
+  if (fn === 'getRules') return args[0] === 'signups' ? mockSignupRules : mockRules
+  if (fn === 'getSignups') return mockSignups()
   if (fn === 'getPromotions' || fn === 'getReceived') return mockMails()
   if (fn === 'getThreads') return mockThreads()
   if (fn === 'saveRules') {
-    mockRules = args[0] as string[]
+    if (args[1] === 'signups') mockSignupRules = args[0] as string[]
+    else mockRules = args[0] as string[]
     return true
   }
   if (fn === 'getInit') {

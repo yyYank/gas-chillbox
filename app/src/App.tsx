@@ -3,6 +3,7 @@ import { Day } from './components/Day'
 import { MailAwaiting, type ThreadsRes } from './components/MailAwaiting'
 import { MailSenders } from './components/MailSenders'
 import { MailServices } from './components/MailServices'
+import { MailSignups } from './components/MailSignups'
 import { Month } from './components/Month'
 import { RulesBar } from './components/RulesBar'
 import { loadCache, saveCache } from './lib/cache'
@@ -10,6 +11,7 @@ import { call } from './lib/gas'
 import type { Mail } from './lib/mail'
 import { monthRange } from './lib/month'
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, stepFontScale } from './lib/settings'
+import { DEFAULT_SIGNUP_RULES, signupQuery } from './lib/signup'
 import { addDays, pageCount, pageDays, sod } from './lib/time'
 import type { Ev, InitRes, MailView, Settings } from './lib/types'
 
@@ -34,6 +36,9 @@ export function App() {
   // メール：タブを開いたときに一度だけ読む
   const [mails, setMails] = useState<Partial<Record<MailView, Mail[]>>>({})
   const [threads, setThreads] = useState<ThreadsRes | undefined>(undefined)
+  const [signupRules, setSignupRules] = useState<string[] | null>(null)
+  const [signupMails, setSignupMails] = useState<Mail[] | undefined>(undefined)
+  const signupReq = useRef(0)
   const [mailError, setMailError] = useState<Partial<Record<MailView, string>>>({})
   const mailRequested = useRef(new Set<MailView>())
 
@@ -122,11 +127,14 @@ export function App() {
   useEffect(() => {
     if (settings.view !== 'month') return
     if (rules === null)
-      call<string[]>('getRules').then(setRules, (err) => {
-        setRules([])
-        showToast('ルールを読み込めませんでした')
-        console.error(err)
-      })
+      call<string[] | null>('getRules', ['month']).then(
+        (r) => setRules(r ?? []),
+        (err) => {
+          setRules([])
+          showToast('ルールを読み込めませんでした')
+          console.error(err)
+        },
+      )
     for (let p = 0; p < monthPages; p++) {
       const { start, days: n } = monthRange(today, p)
       if (monthEvents[start] || monthLoading.current.has(start)) continue
@@ -145,7 +153,7 @@ export function App() {
   // メールは表示ごとに、開いたときに一度だけ読む
   useEffect(() => {
     const mv = settings.mailView
-    if (settings.source !== 'mail' || mailRequested.current.has(mv)) return
+    if (settings.source !== 'mail' || mv === 'signups' || mailRequested.current.has(mv)) return
     mailRequested.current.add(mv)
     const fail = (err: unknown) => {
       setMailError((p) => ({ ...p, [mv]: 'メールを読み込めませんでした' }))
@@ -159,10 +167,50 @@ export function App() {
       )
   }, [settings.source, settings.mailView])
 
+  // 登録サービス：ルール（件名に含む言葉）を読み、変わるたびに検索し直す
+  useEffect(() => {
+    if (settings.source !== 'mail' || settings.mailView !== 'signups' || signupRules !== null) return
+    call<string[] | null>('getRules', ['signups']).then(
+      (r) => setSignupRules(r ?? DEFAULT_SIGNUP_RULES),
+      (err) => {
+        setSignupRules(DEFAULT_SIGNUP_RULES)
+        showToast('ルールを読み込めませんでした')
+        console.error(err)
+      },
+    )
+  }, [settings.source, settings.mailView, signupRules, showToast])
+
+  useEffect(() => {
+    if (signupRules === null) return
+    const q = signupQuery(signupRules)
+    const id = ++signupReq.current
+    setSignupMails(q ? undefined : [])
+    if (!q) return
+    call<Mail[]>('getSignups', [q]).then(
+      (ms) => {
+        if (id === signupReq.current) setSignupMails(ms)
+      },
+      (err) => {
+        if (id === signupReq.current) setMailError((p) => ({ ...p, signups: 'メールを読み込めませんでした' }))
+        console.error(err)
+      },
+    )
+  }, [signupRules])
+
+  const changeSignupRules = (next: string[]) => {
+    const prev = signupRules ?? []
+    setSignupRules(next)
+    call('saveRules', [next, 'signups']).then(undefined, (err) => {
+      setSignupRules(prev)
+      showToast('ルールを保存できませんでした')
+      console.error(err)
+    })
+  }
+
   const changeRules = (next: string[]) => {
     const prev = rules ?? []
     setRules(next)
-    call('saveRules', [next]).then(undefined, (err) => {
+    call('saveRules', [next, 'month']).then(undefined, (err) => {
       setRules(prev)
       showToast('ルールを保存できませんでした')
       console.error(err)
@@ -314,6 +362,7 @@ export function App() {
                   [
                     ['services', 'サービス別'],
                     ['awaiting', '未返信'],
+                    ['signups', '登録サービス'],
                     ['promotions', 'プロモーション'],
                   ] as const
                 ).map(([v, label]) => (
@@ -376,6 +425,9 @@ export function App() {
       )}
 
       {cal && view === 'month' && <RulesBar rules={rules ?? []} onChange={changeRules} />}
+      {!cal && settings.mailView === 'signups' && signupRules !== null && (
+        <RulesBar rules={signupRules} onChange={changeSignupRules} />
+      )}
 
       {cal ? (
         <main
@@ -409,6 +461,12 @@ export function App() {
         <main id="mail" aria-label="メール">
           {settings.mailView === 'services' ? (
             <MailServices mails={mails.services} error={mailError.services ?? ''} />
+          ) : settings.mailView === 'signups' ? (
+            <MailSignups
+              mails={signupMails}
+              error={mailError.signups ?? ''}
+              empty={signupRules?.length === 0}
+            />
           ) : settings.mailView === 'awaiting' ? (
             <MailAwaiting data={threads} error={mailError.awaiting ?? ''} />
           ) : (
