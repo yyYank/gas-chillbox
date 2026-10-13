@@ -143,7 +143,7 @@ export function App() {
         <button
           type="button"
           id="hud-date"
-          className={`px${index === 0 ? ' today' : ''}`}
+          className={`px interactive${index === 0 ? ' today' : ''}`}
           aria-label="今日に戻る"
           onClick={() => worldRef.current?.scrollTo({ left: 0, behavior: 'smooth' })}
         >
@@ -159,7 +159,7 @@ export function App() {
                 <button
                   key={x.key}
                   type="button"
-                  className="chip"
+                  className="chip interactive"
                   onClick={() => {
                     setDuties((p) => ({ ...p, current: p.current.filter((y) => y.key !== x.key) }))
                     call('markDone', [x.key]).then(
@@ -218,7 +218,7 @@ export function App() {
         <button
           type="button"
           id="hud-set"
-          className="px"
+          className="px interactive"
           aria-label="設定"
           aria-expanded={panelOpen}
           onClick={() => setPanelOpen((v) => !v)}

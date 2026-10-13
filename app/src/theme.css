@@ -1,0 +1,89 @@
+/*
+ * Design tokens — docs/design の design-system.md / motion.md に合わせる。
+ * 色は現行のパレットをそのまま token に落とし込んだもの。
+ * コンポーネント側に色コードを書かず、ここだけを差し替えれば配色が変わる。
+ */
+:root {
+  /* Surface は 3 段階まで */
+  --bg: 250 248 243;
+  --surface: 243 238 225;
+  --surface-2: 217 215 226;
+
+  --text: 30 32 36;
+  --muted: 138 133 123;
+  --faint: 185 179 163;
+
+  --border: 185 179 163;
+  --border-strong: 138 133 123;
+
+  --accent: 217 107 63;
+  --accent-strong: 194 78 42;
+  --accent-soft: 245 231 190;
+  --accent-soft-foreground: 62 50 20;
+  --accent-foreground: 255 255 255;
+
+  --success: 47 143 134;
+  --danger: 168 67 31;
+  --warning: 122 90 18;
+
+  /* 地面と予定。分類のための色ではなく、場所と種別の 2 値だけ */
+  --ground-surface: 237 233 223;
+  --event-work: 42 46 54;
+  --event-private: 47 143 134;
+
+  /* Shape */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+
+  /* Spacing */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+
+  /* Typography */
+  --t-meta: 12px;
+  --t-sub: 14px;
+  --t-base: 15px;
+  --t-h-sm: 18px;
+  --t-h: 24px;
+  --t-h-lg: 30px;
+
+  /* Motion */
+  --motion-instant: 80ms;
+  --motion-fast: 120ms;
+  --motion-normal: 180ms;
+  --motion-slow: 220ms;
+  --motion-feedback: 300ms;
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* 触れるものは同じ transition を共有する */
+.interactive {
+  transition:
+    background-color var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard),
+    color var(--motion-fast) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-standard);
+}
+.interactive:active {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

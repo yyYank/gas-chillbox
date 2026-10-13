@@ -1,20 +1,4 @@
 :root {
-  --ink: #1e2024;
-  --paper: #faf8f3;
-  --muted: #8a857b;
-  --line: #b9b3a3;
-  --soil: #ede9df;
-  --work: #2a2e36;
-  --private: #2f8f86;
-  --accent: #d96b3f;
-  --band: #f5e7be;
-  --band-ink: #3e3214;
-  --band-head: #7a5a12;
-  --warn: #a8431f;
-  --holiday: #c24e2a;
-  --morning: #fbf4e0;
-  --noon: #f3eee1;
-  --evening: #d9d7e2;
   --hud: 56px;
   --wall: 28px;
   --gate: 104px;
@@ -32,8 +16,8 @@ html,
 body {
   margin: 0;
   height: 100%;
-  background: var(--paper);
-  color: var(--ink);
+  background: rgb(var(--bg));
+  color: rgb(var(--text));
   font-family: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
   -webkit-text-size-adjust: 100%;
 }
@@ -76,8 +60,8 @@ button {
   padding: 0 10px;
   padding-left: max(10px, env(safe-area-inset-left));
   padding-right: max(10px, env(safe-area-inset-right));
-  background: var(--ink);
-  color: var(--paper);
+  background: rgb(var(--text));
+  color: rgb(var(--bg));
 }
 #hud-date {
   font-size: 20px;
@@ -88,10 +72,10 @@ button {
 #hud-date small {
   font-size: 13px;
   margin-left: 4px;
-  color: var(--line);
+  color: rgb(var(--border));
 }
 #hud-date.today small {
-  color: var(--accent);
+  color: rgb(var(--accent));
 }
 #band {
   flex: 1;
@@ -101,9 +85,9 @@ button {
   align-items: center;
   gap: 6px;
   padding: 0 6px;
-  background: var(--band);
-  color: var(--band-ink);
-  border-radius: 6px;
+  background: rgb(var(--accent-soft));
+  color: rgb(var(--accent-soft-foreground));
+  border-radius: var(--r-sm);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -112,17 +96,17 @@ button {
 }
 #band .head {
   font-weight: 700;
-  color: var(--band-head);
+  color: rgb(var(--warning));
   white-space: nowrap;
   font-size: 13px;
   padding: 0 2px;
 }
 #band .sep {
-  color: var(--line);
+  color: rgb(var(--border));
 }
 #band .none {
   font-size: 12px;
-  color: var(--muted);
+  color: rgb(var(--muted));
   white-space: nowrap;
 }
 .chip {
@@ -130,15 +114,15 @@ button {
   font-size: 13px;
   padding: 0 8px;
   height: 30px;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   background: rgba(255, 255, 255, 0.6);
 }
 .chip b {
-  color: var(--warn);
+  color: rgb(var(--danger));
   margin-left: 2px;
 }
 .chip.arm {
-  background: var(--accent);
+  background: rgb(var(--accent));
   color: #fff;
 }
 .chip.arm b {
@@ -146,13 +130,13 @@ button {
 }
 .chip.next {
   background: transparent;
-  border: 1px dashed var(--band-head);
+  border: 1px dashed rgb(var(--warning));
 }
 #gate {
   white-space: nowrap;
   text-align: right;
   font-size: 11px;
-  color: var(--line);
+  color: rgb(var(--border));
   line-height: 1.15;
   min-width: 76px;
 }
@@ -160,7 +144,7 @@ button {
   font-size: 18px;
   min-width: 44px;
   min-height: 44px;
-  color: var(--line);
+  color: rgb(var(--border));
 }
 
 /* 設定パネル */
@@ -168,8 +152,8 @@ button {
   position: fixed;
   inset: var(--hud) 0 auto 0;
   z-index: 5;
-  background: var(--ink);
-  color: var(--paper);
+  background: rgb(var(--text));
+  color: rgb(var(--bg));
   padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
@@ -188,7 +172,7 @@ button {
 }
 #settings .row > span {
   min-width: 72px;
-  color: var(--line);
+  color: rgb(var(--border));
 }
 #settings .seg {
   display: flex;
@@ -197,21 +181,21 @@ button {
 #settings .seg button {
   min-height: 34px;
   padding: 0 10px;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   background: rgba(255, 255, 255, 0.12);
-  color: var(--paper);
+  color: rgb(var(--bg));
   font-size: 13px;
 }
 #settings .seg button[aria-pressed="true"] {
-  background: var(--accent);
+  background: rgb(var(--accent));
   color: #fff;
 }
 #settings select {
   min-height: 34px;
   padding: 0 6px;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   background: rgba(255, 255, 255, 0.12);
-  color: var(--paper);
+  color: rgb(var(--bg));
   font-size: 13px;
   border: 0;
 }
@@ -219,15 +203,15 @@ button {
   align-self: flex-end;
   min-height: 34px;
   padding: 0 14px;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   background: rgba(255, 255, 255, 0.12);
-  color: var(--paper);
+  color: rgb(var(--bg));
   font-size: 13px;
 }
 #gate span {
   display: block;
   font-size: 17px;
-  color: var(--paper);
+  color: rgb(var(--bg));
 }
 
 /* 地面（横スクロール） */
@@ -278,7 +262,7 @@ button {
   right: 0;
   bottom: var(--soil-h);
   height: var(--strip);
-  background: var(--line);
+  background: rgb(var(--border));
 }
 .soil {
   z-index: 0;
@@ -287,7 +271,7 @@ button {
   right: 0;
   bottom: 0;
   height: var(--soil-h);
-  background: var(--soil);
+  background: rgb(var(--ground-surface));
 }
 .tick {
   z-index: 0;
@@ -295,19 +279,19 @@ button {
   bottom: calc(var(--soil-h) - 8px);
   width: 1px;
   height: 8px;
-  background: var(--line);
+  background: rgb(var(--border));
 }
 .tick.major {
   bottom: calc(var(--soil-h) - 12px);
   height: 12px;
-  background: var(--muted);
+  background: rgb(var(--muted));
 }
 .tl {
   z-index: 0;
   position: absolute;
   bottom: calc(var(--soil-h) - 24px);
   font-size: 11px;
-  color: var(--muted);
+  color: rgb(var(--muted));
   transform: translateX(-50%);
 }
 .tl.first {
@@ -321,8 +305,8 @@ button {
   bottom: 0;
   right: 0;
   width: var(--wall);
-  background: var(--work);
-  color: var(--paper);
+  background: rgb(var(--event-work));
+  color: rgb(var(--bg));
   overflow: hidden;
 }
 .wall .wl {
@@ -335,8 +319,8 @@ button {
   color: #f2a58a;
 }
 .gate-day .wall {
-  background: var(--ink);
-  border-top: 8px solid var(--accent);
+  background: rgb(var(--text));
+  border-top: 8px solid rgb(var(--accent));
 }
 .gate-day .wall .month {
   font-size: 30px;
@@ -350,7 +334,7 @@ button {
   writing-mode: vertical-rl;
   font-size: 12px;
   line-height: 1.5;
-  color: var(--line);
+  color: rgb(var(--border));
   position: absolute;
   left: 60px;
   top: 20px;
@@ -366,12 +350,10 @@ button {
   height: var(--block);
   min-width: 2px;
   padding: 0;
-  border-radius: 2px 2px 0 0;
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
   box-shadow:
-    inset -1.5px 0 0 var(--paper),
-    inset 1.5px 0 0 var(--paper),
-    3px 0 6px rgba(0, 0, 0, 0.18),
-    0 2px 4px rgba(0, 0, 0, 0.14);
+    inset -1.5px 0 0 rgb(var(--bg)),
+    inset 1.5px 0 0 rgb(var(--bg));
 }
 /* L3 旗＝予定名。柱より手前の層に置き、重ならない高さへ積む */
 .flags {
@@ -385,11 +367,11 @@ button {
   min-width: var(--lbl);
   padding: 4px 7px;
   background: #fff;
-  color: var(--ink);
-  border-radius: 5px;
+  color: rgb(var(--text));
+  border-radius: var(--r-md);
   box-shadow:
-    0 6px 16px rgba(0, 0, 0, 0.3),
-    0 2px 4px rgba(0, 0, 0, 0.18);
+    0 4px 12px rgb(var(--text) / 0.18),
+    0 1px 2px rgb(var(--text) / 0.12);
   font-size: 13px;
   font-weight: 700;
   line-height: 1.25;
@@ -409,13 +391,13 @@ button {
   white-space: nowrap;
 }
 .blk.work {
-  background: var(--work);
+  background: rgb(var(--event-work));
 }
 .blk.private {
-  background: var(--private);
+  background: rgb(var(--event-private));
 }
 .blk.tent {
-  border-top: 4px solid var(--accent);
+  border-top: 4px solid rgb(var(--accent));
   opacity: 0.88;
 }
 
@@ -427,15 +409,15 @@ button {
   align-items: flex-end;
   justify-content: center;
   font-size: 12px;
-  color: var(--muted);
-  border-bottom: 1px dotted var(--line);
+  color: rgb(var(--muted));
+  border-bottom: 1px dotted rgb(var(--border));
   padding-bottom: 3px;
   white-space: nowrap;
   overflow: hidden;
 }
 .free:active {
-  color: var(--accent);
-  border-color: var(--accent);
+  color: rgb(var(--accent));
+  border-color: rgb(var(--accent));
 }
 .gate-day .free {
   justify-content: flex-start;
@@ -456,11 +438,11 @@ button {
   padding: 3px 8px;
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.7);
-  border: 1px solid var(--line);
-  color: var(--ink);
+  border: 1px solid rgb(var(--border));
+  color: rgb(var(--text));
 }
 .allday span.holiday {
-  color: var(--holiday);
+  color: rgb(var(--accent-strong));
   border-color: #e6b7a6;
 }
 
@@ -470,7 +452,7 @@ button {
   top: 0;
   bottom: var(--ground);
   width: 2px;
-  background: var(--accent);
+  background: rgb(var(--accent));
   transform: translateX(-1px);
 }
 .now::after {
@@ -481,15 +463,15 @@ button {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--accent);
-  border: 3px solid var(--paper);
+  background: rgb(var(--accent));
+  border: 3px solid rgb(var(--bg));
 }
 .now span {
   position: absolute;
   top: 38px;
   left: 8px;
   font-size: 13px;
-  color: var(--accent);
+  color: rgb(var(--accent));
   white-space: nowrap;
 }
 
@@ -509,9 +491,9 @@ button {
   min-width: 0;
 }
 .sign .board {
-  background: var(--band);
-  color: var(--band-ink);
-  border: 2px solid var(--band-head);
+  background: rgb(var(--accent-soft));
+  color: rgb(var(--accent-soft-foreground));
+  border: 2px solid rgb(var(--warning));
   border-radius: 3px;
   padding: 5px 9px;
   font-size: 13px;
@@ -520,7 +502,7 @@ button {
   max-width: 150px;
 }
 .sign .board b {
-  color: var(--warn);
+  color: rgb(var(--danger));
 }
 .sign .board small {
   display: block;
@@ -530,7 +512,7 @@ button {
 .sign .post {
   width: 4px;
   height: 28px;
-  background: var(--band-head);
+  background: rgb(var(--warning));
 }
 
 #toast {
@@ -538,17 +520,17 @@ button {
   left: 50%;
   bottom: calc(16px + env(safe-area-inset-bottom));
   transform: translateX(-50%) translateY(20px);
-  background: var(--ink);
-  color: var(--paper);
+  background: rgb(var(--text));
+  color: rgb(var(--bg));
   padding: 10px 14px;
-  border-radius: 10px;
+  border-radius: var(--r-md);
   font-size: 13px;
   max-width: 90vw;
   opacity: 0;
   pointer-events: none;
   transition:
-    opacity 0.2s,
-    transform 0.2s;
+    opacity var(--motion-normal) var(--ease-standard),
+    transform var(--motion-normal) var(--ease-standard);
 }
 #toast.show {
   opacity: 1;
@@ -560,6 +542,6 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--muted);
+  color: rgb(var(--muted));
   font-size: 14px;
 }

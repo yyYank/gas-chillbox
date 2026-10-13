@@ -83,9 +83,12 @@ export function Day({ index, today, events, duties, settings, onToast, onCopy }:
   return (
     <section className={`day${isGate ? ' gate-day' : ''}`} data-i={index}>
       <div className="track" ref={trackRef}>
-        <div className="sky" style={{ left: 0, width: '33.34%', background: 'var(--morning)' }} />
-        <div className="sky" style={{ left: '33.33%', width: '33.34%', background: 'var(--noon)' }} />
-        <div className="sky" style={{ left: '66.66%', width: '33.34%', background: 'var(--evening)' }} />
+        <div className="sky" style={{ left: 0, width: '33.34%', background: 'rgb(var(--bg))' }} />
+        <div className="sky" style={{ left: '33.33%', width: '33.34%', background: 'rgb(var(--surface))' }} />
+        <div
+          className="sky"
+          style={{ left: '66.66%', width: '33.34%', background: 'rgb(var(--surface-2))' }}
+        />
         <div className="strip" />
         <div className="soil" />
         {ticks.map((t) => (
@@ -118,7 +121,7 @@ export function Day({ index, today, events, duties, settings, onToast, onCopy }:
             <button
               key={`${g[0]}-${g[1]}`}
               type="button"
-              className="free"
+              className="free interactive"
               style={{ left: `${left + 0.6}%`, width: `${Math.max(0, width - 1.2)}%` }}
               aria-label={text}
               onClick={() => onCopy(text)}
@@ -133,7 +136,7 @@ export function Day({ index, today, events, duties, settings, onToast, onCopy }:
           <button
             key={x.e.id}
             type="button"
-            className={`blk px ${x.e.kind}${x.e.tentative ? ' tent' : ''}`}
+            className={`blk px interactive ${x.e.kind}${x.e.tentative ? ' tent' : ''}`}
             style={{ left: `${pct(x.a)}%`, width: `${pct(x.b) - pct(x.a)}%` }}
             aria-label={`${hm(x.a)}–${hm(x.b)} ${x.e.title}`}
             onClick={() => onToast(`${hm(x.a)}–${hm(x.b)} ${x.e.title}`)}
