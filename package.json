@@ -13,12 +13,28 @@
     "open": "clasp -P viewer open-script",
     "open:app": "clasp -P viewer open-web-app",
     "logs": "clasp -P viewer tail-logs",
-    "check": "node --check viewer/src/Code.js"
+    "check": "biome check . && tsc --noEmit && node --check viewer/src/Code.js",
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@google/clasp": "3.4.1"
+    "@biomejs/biome": "^2.5.15",
+    "@google/clasp": "3.4.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "vite-plugin-singlefile": "^2.3.3"
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   }
 }

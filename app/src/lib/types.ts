@@ -1,0 +1,34 @@
+export type Kind = 'work' | 'private' | 'holiday'
+
+export interface Ev {
+  id: string
+  title: string
+  start: number
+  end: number
+  allDay: boolean
+  kind: Kind
+  tentative?: boolean
+}
+
+export interface Duty {
+  title: string
+  key: string
+  months: number
+}
+
+export interface Duties {
+  current: Duty[]
+  next: Duty[]
+}
+
+export interface InitRes {
+  events: Ev[]
+  duties: Duties
+}
+
+export interface Settings {
+  step: 1 | 2 | 3
+  from: number
+  to: number
+  zoom: number
+}
