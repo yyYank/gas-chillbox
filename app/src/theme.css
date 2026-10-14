@@ -91,13 +91,16 @@
   outline-offset: 1px;
 }
 
+/* 動きを減らす設定では、transition の長さを変数ごと潰す */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+  :root {
+    --motion-instant: 0.01ms;
+    --motion-fast: 0.01ms;
+    --motion-normal: 0.01ms;
+    --motion-slow: 0.01ms;
+    --motion-feedback: 0.01ms;
+  }
+  .interactive:active {
+    transform: none;
   }
 }
