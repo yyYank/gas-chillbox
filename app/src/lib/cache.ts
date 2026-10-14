@@ -19,11 +19,17 @@ export function saveCache(c: Cache): void {
 export function loadCache(today: number): Cache | null {
   try {
     const raw = localStorage.getItem(CACHE_KEY)
-    if (!raw) return null
+    if (!raw) {
+      return null
+    }
     const c = JSON.parse(raw) as Cache
-    if (!c?.events) return null
+    if (!c?.events) {
+      return null
+    }
     const end = c.start + c.days * 86400000
-    if (end <= today) return null
+    if (end <= today) {
+      return null
+    }
     return c
   } catch {
     return null

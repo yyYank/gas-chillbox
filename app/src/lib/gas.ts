@@ -48,10 +48,18 @@ function mockDays(start: number, days: number): Ev[] {
     const wd = new Date(addDays(start, d)).getDay()
     if (wd >= 1 && wd <= 5) {
       at(d, 9, 30, 30, '朝会', 'work')
-      if (d % 2) at(d, 10, 30, 90, '定例MTG', 'work')
-      if (d % 3 === 0) at(d, 14, 0, 60, '[Slack] 1on1', 'work')
-      if (d % 4 === 1) at(d, 15, 0, 120, '設計レビュー', 'work')
-      if (d % 5 === 2) at(d, 19, 0, 150, '飲み会', 'private')
+      if (d % 2) {
+        at(d, 10, 30, 90, '定例MTG', 'work')
+      }
+      if (d % 3 === 0) {
+        at(d, 14, 0, 60, '[Slack] 1on1', 'work')
+      }
+      if (d % 4 === 1) {
+        at(d, 15, 0, 120, '設計レビュー', 'work')
+      }
+      if (d % 5 === 2) {
+        at(d, 19, 0, 150, '飲み会', 'private')
+      }
     } else if (d % 7 === 0) {
       at(d, 13, 0, 60, '歯医者', 'private')
     }
@@ -151,18 +159,31 @@ function mock(
   fn: string,
   args: unknown[],
 ): InitRes | Ev[] | Mail[] | { me: string; threads: ThreadInfo[] } | string[] | null | boolean {
-  if (fn === 'getRules') return args[0] === 'signups' ? mockSignupRules : mockRules
-  if (fn === 'getSignups') return mockSignups()
-  if (fn === 'getPromotions' || fn === 'getReceived') return mockMails()
-  if (fn === 'getThreads') return mockThreads()
+  if (fn === 'getRules') {
+    return args[0] === 'signups' ? mockSignupRules : mockRules
+  }
+  if (fn === 'getSignups') {
+    return mockSignups()
+  }
+  if (fn === 'getPromotions' || fn === 'getReceived') {
+    return mockMails()
+  }
+  if (fn === 'getThreads') {
+    return mockThreads()
+  }
   if (fn === 'saveRules') {
-    if (args[1] === 'signups') mockSignupRules = args[0] as string[]
-    else mockRules = args[0] as string[]
+    if (args[1] === 'signups') {
+      mockSignupRules = args[0] as string[]
+    } else {
+      mockRules = args[0] as string[]
+    }
     return true
   }
   if (fn === 'getInit') {
     return { events: mockDays(args[0] as number, args[1] as number) }
   }
-  if (fn === 'getDays') return mockDays(args[0] as number, args[1] as number)
+  if (fn === 'getDays') {
+    return mockDays(args[0] as number, args[1] as number)
+  }
   return true
 }

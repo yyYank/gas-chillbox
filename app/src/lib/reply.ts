@@ -29,10 +29,18 @@ function addresses(header: string): string[] {
 export function isAwaitingReply(t: ThreadInfo, me: string): boolean {
   const self = me.toLowerCase()
   const from = parseFrom(t.from).address
-  if (from === self) return false
-  if (!addresses(t.to).includes(self)) return false
-  if (t.unsubscribe || t.listId) return false
-  if (NO_REPLY.test(from)) return false
+  if (from === self) {
+    return false
+  }
+  if (!addresses(t.to).includes(self)) {
+    return false
+  }
+  if (t.unsubscribe || t.listId) {
+    return false
+  }
+  if (NO_REPLY.test(from)) {
+    return false
+  }
   return true
 }
 

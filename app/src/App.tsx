@@ -46,7 +46,9 @@ export function App() {
 
   const showToast = useCallback((text: string) => setToast(text), [])
   useEffect(() => {
-    if (!toast) return
+    if (!toast) {
+      return
+    }
     const id = setTimeout(() => setToast(''), 2600)
     return () => clearTimeout(id)
   }, [toast])
@@ -54,9 +56,11 @@ export function App() {
   const copy = useCallback(
     (text: string) => {
       const done = () => showToast(`コピー：${text}`)
-      if (navigator.clipboard?.writeText)
+      if (navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(text).then(done, () => showToast(text))
-      else showToast(text)
+      } else {
+        showToast(text)
+      }
     },
     [showToast],
   )
@@ -80,7 +84,9 @@ export function App() {
       },
       (err) => {
         setLoading(cached ? '' : '読み込めませんでした')
-        if (cached) showToast('オフライン表示中')
+        if (cached) {
+          showToast('オフライン表示中')
+        }
         console.error(err)
       },
     )
@@ -89,7 +95,9 @@ export function App() {
   useEffect(init, [init])
 
   const loadMore = useCallback(() => {
-    if (loadingMore.current) return
+    if (loadingMore.current) {
+      return
+    }
     loadingMore.current = true
     const from = addDays(today, days)
     call<Ev[]>('getDays', [from, CHUNK]).then(
@@ -114,19 +122,27 @@ export function App() {
   // ---------- 横スクロール ----------
   const onScroll = useCallback(() => {
     const w = worldRef.current
-    if (!w) return
-    const view = settings.view
-    if (view === 'month') {
-      if (w.scrollLeft + w.clientWidth * 2 > w.scrollWidth) setMonthPages((n) => n + 1)
+    if (!w) {
       return
     }
-    if (w.scrollLeft + w.clientWidth * 4 > w.scrollWidth) loadMore()
+    const view = settings.view
+    if (view === 'month') {
+      if (w.scrollLeft + w.clientWidth * 2 > w.scrollWidth) {
+        setMonthPages((n) => n + 1)
+      }
+      return
+    }
+    if (w.scrollLeft + w.clientWidth * 4 > w.scrollWidth) {
+      loadMore()
+    }
   }, [loadMore, settings.view])
 
   // 月表示に入ったらルールと、見えている月とその先の予定を読む
   useEffect(() => {
-    if (settings.view !== 'month') return
-    if (rules === null)
+    if (settings.view !== 'month') {
+      return
+    }
+    if (rules === null) {
       call<string[] | null>('getRules', ['month']).then(
         (r) => setRules(r ?? []),
         (err) => {
@@ -135,9 +151,12 @@ export function App() {
           console.error(err)
         },
       )
+    }
     for (let p = 0; p < monthPages; p++) {
       const { start, days: n } = monthRange(today, p)
-      if (monthEvents[start] || monthLoading.current.has(start)) continue
+      if (monthEvents[start] || monthLoading.current.has(start)) {
+        continue
+      }
       monthLoading.current.add(start)
       call<Ev[]>('getDays', [start, n]).then(
         (evs) => setMonthEvents((prev) => ({ ...prev, [start]: evs })),
@@ -153,23 +172,29 @@ export function App() {
   // メールは表示ごとに、開いたときに一度だけ読む
   useEffect(() => {
     const mv = settings.mailView
-    if (settings.source !== 'mail' || mv === 'signups' || mailRequested.current.has(mv)) return
+    if (settings.source !== 'mail' || mv === 'signups' || mailRequested.current.has(mv)) {
+      return
+    }
     mailRequested.current.add(mv)
     const fail = (err: unknown) => {
       setMailError((p) => ({ ...p, [mv]: 'メールを読み込めませんでした' }))
       console.error(err)
     }
-    if (mv === 'awaiting') call<ThreadsRes>('getThreads').then(setThreads, fail)
-    else
+    if (mv === 'awaiting') {
+      call<ThreadsRes>('getThreads').then(setThreads, fail)
+    } else {
       call<Mail[]>(mv === 'services' ? 'getReceived' : 'getPromotions').then(
         (ms) => setMails((p) => ({ ...p, [mv]: ms })),
         fail,
       )
+    }
   }, [settings.source, settings.mailView])
 
   // 登録サービス：ルール（件名に含む言葉）を読み、変わるたびに検索し直す
   useEffect(() => {
-    if (settings.source !== 'mail' || settings.mailView !== 'signups' || signupRules !== null) return
+    if (settings.source !== 'mail' || settings.mailView !== 'signups' || signupRules !== null) {
+      return
+    }
     call<string[] | null>('getRules', ['signups']).then(
       (r) => setSignupRules(r ?? DEFAULT_SIGNUP_RULES),
       (err) => {
@@ -181,17 +206,25 @@ export function App() {
   }, [settings.source, settings.mailView, signupRules, showToast])
 
   useEffect(() => {
-    if (signupRules === null) return
+    if (signupRules === null) {
+      return
+    }
     const q = signupQuery(signupRules)
     const id = ++signupReq.current
     setSignupMails(q ? undefined : [])
-    if (!q) return
+    if (!q) {
+      return
+    }
     call<Mail[]>('getSignups', [q]).then(
       (ms) => {
-        if (id === signupReq.current) setSignupMails(ms)
+        if (id === signupReq.current) {
+          setSignupMails(ms)
+        }
       },
       (err) => {
-        if (id === signupReq.current) setMailError((p) => ({ ...p, signups: 'メールを読み込めませんでした' }))
+        if (id === signupReq.current) {
+          setMailError((p) => ({ ...p, signups: 'メールを読み込めませんでした' }))
+        }
         console.error(err)
       },
     )
@@ -224,7 +257,9 @@ export function App() {
   // 日付が変わったら読み直す
   useEffect(() => {
     const id = setInterval(() => {
-      if (sod(Date.now()) !== today) init()
+      if (sod(Date.now()) !== today) {
+        init()
+      }
     }, 60000)
     return () => clearInterval(id)
   }, [today, init])

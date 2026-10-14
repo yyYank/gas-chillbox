@@ -51,15 +51,21 @@ export type DayType = 'weekday' | 'sat' | 'sun' | 'holiday'
 /** 曜日と祝日カレンダーから、その日の種類を決める（祝日が土曜に重なれば祝日） */
 export function dayType(ds: number, events: Ev[]): DayType {
   const de = addDays(ds, 1)
-  if (events.some((e) => e.kind === 'holiday' && e.start < de && e.end > ds)) return 'holiday'
+  if (events.some((e) => e.kind === 'holiday' && e.start < de && e.end > ds)) {
+    return 'holiday'
+  }
   const wd = new Date(ds).getDay()
   return wd === 6 ? 'sat' : wd === 0 ? 'sun' : 'weekday'
 }
 
 /** 複数日を縦に並べる表示で、page ページ目に並べる日の始まり */
 export function pageDays(view: Exclude<View, 'day' | 'month'>, today: number, page: number): number[] {
-  if (view === 'week') return weekDays(today, page)
-  if (view === 'five') return Array.from({ length: 5 }, (_, i) => addDays(today, page * 5 + i))
+  if (view === 'week') {
+    return weekDays(today, page)
+  }
+  if (view === 'five') {
+    return Array.from({ length: 5 }, (_, i) => addDays(today, page * 5 + i))
+  }
   // 平日：今週の月曜から。土日なら来週の月曜から
   const wd = new Date(today).getDay()
   const monday = addDays(today, wd === 6 ? 2 : wd === 0 ? 1 : 1 - wd)
@@ -70,6 +76,8 @@ export function pageDays(view: Exclude<View, 'day' | 'month'>, today: number, pa
 export function pageCount(view: Exclude<View, 'day' | 'month'>, today: number, days: number): number {
   const end = addDays(today, days)
   let n = 0
-  while (pageDays(view, today, n)[view === 'week' ? 6 : 4] < end) n++
+  while (pageDays(view, today, n)[view === 'week' ? 6 : 4] < end) {
+    n++
+  }
   return Math.max(1, n)
 }

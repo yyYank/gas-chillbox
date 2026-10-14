@@ -49,7 +49,9 @@ export function Day({ index, today, events, settings, onToast, onCopy, compact }
   // 旗は描画してからでないと高さが分からない。測って、重ならない位置まで積み上げる
   useLayoutEffect(() => {
     const track = trackRef.current
-    if (!track) return
+    if (!track) {
+      return
+    }
     const bars = track.querySelectorAll<HTMLElement>('.blk')
     const flags = track.querySelectorAll<HTMLElement>('.flag')
     const placed: { l: number; r: number; top: number }[] = []
@@ -68,7 +70,9 @@ export function Day({ index, today, events, settings, onToast, onCopy, compact }
         f.style.width = ''
         for (let w = f.offsetWidth; f.offsetTop < top && w < track.clientWidth; ) {
           f.style.maxWidth = `${Math.min(track.clientWidth, w + 40)}px`
-          if (f.offsetWidth <= w) break
+          if (f.offsetWidth <= w) {
+            break
+          }
           w = f.offsetWidth
         }
         // 右端寄りに置くと使える幅が減って札が縮むので、測った幅で固定してから戻す
@@ -91,10 +95,16 @@ export function Day({ index, today, events, settings, onToast, onCopy, compact }
       const l = f.offsetLeft
       const r = l + f.offsetWidth
       let y = FLAG_BASE
-      for (const q of placed) if (l < q.r && r > q.l) y = Math.max(y, q.top + FLAG_GAP)
+      for (const q of placed) {
+        if (l < q.r && r > q.l) {
+          y = Math.max(y, q.top + FLAG_GAP)
+        }
+      }
       f.style.bottom = `calc(var(--ground) + ${y}px)`
       const b = bars[i]
-      if (b) b.style.height = `${y + 8}px`
+      if (b) {
+        b.style.height = `${y + 8}px`
+      }
       placed.push({ l, r, top: y + f.offsetHeight })
     })
   })
@@ -102,12 +112,16 @@ export function Day({ index, today, events, settings, onToast, onCopy, compact }
   // 空き（地面そのもの）
   const gaps: [number, number][] = []
   let cursor = h0 * 60
-  if (isToday) cursor = Math.max(cursor, Math.ceil(nowMin() / 15) * 15)
+  if (isToday) {
+    cursor = Math.max(cursor, Math.ceil(nowMin() / 15) * 15)
+  }
   for (const r of [
     ...timed.map((x): [number, number] => [x.a, x.b]),
     [h1 * 60, h1 * 60] as [number, number],
   ]) {
-    if (r[0] - cursor >= MIN_GAP) gaps.push([cursor, r[0]])
+    if (r[0] - cursor >= MIN_GAP) {
+      gaps.push([cursor, r[0]])
+    }
     cursor = Math.max(cursor, r[1])
   }
   const dayLabel = `${md(ds)}(${WD[new Date(ds).getDay()]})`
@@ -116,7 +130,9 @@ export function Day({ index, today, events, settings, onToast, onCopy, compact }
   const nextType = dayType(de, events)
   const holiday = nextType === 'holiday'
   const ticks: number[] = []
-  for (let t = h0; t < h1; t += settings.step) ticks.push(t)
+  for (let t = h0; t < h1; t += settings.step) {
+    ticks.push(t)
+  }
 
   return (
     <section className={`day ${type}${isGate ? ' gate-day' : ''}${compact ? ' compact' : ''}`} data-i={index}>
@@ -217,9 +233,7 @@ export function Day({ index, today, events, settings, onToast, onCopy, compact }
 
       <div className="wall">
         {isGate ? (
-          <>
-            <div className="month px">{`${nextDay.getMonth() + 1}月`}</div>
-          </>
+          <div className="month px">{`${nextDay.getMonth() + 1}月`}</div>
         ) : (
           <div className={`wl px ${nextType}`}>
             {`${md(de)} ${WD[nextDay.getDay()]}${holiday ? '・祝' : ''}`}

@@ -15,7 +15,9 @@ export function RulesBar({ rules, onChange }: Props) {
       onSubmit={(e) => {
         e.preventDefault()
         const next = addRule(rules, input)
-        if (next !== rules) onChange(next)
+        if (next !== rules) {
+          onChange(next)
+        }
         setInput('')
       }}
     >

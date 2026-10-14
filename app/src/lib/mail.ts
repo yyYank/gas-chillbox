@@ -27,8 +27,12 @@ export function parseUnsubscribe(header: string): { url?: string; mailto?: strin
   const out: { url?: string; mailto?: string } = {}
   for (const m of header.matchAll(/<([^>]+)>/g)) {
     const v = m[1].trim()
-    if (!out.url && /^https:\/\//i.test(v)) out.url = v
-    if (!out.mailto && /^mailto:/i.test(v)) out.mailto = v
+    if (!out.url && /^https:\/\//i.test(v)) {
+      out.url = v
+    }
+    if (!out.mailto && /^mailto:/i.test(v)) {
+      out.mailto = v
+    }
   }
   return out
 }
@@ -55,8 +59,12 @@ export function groupBySender(mails: Mail[]): Sender[] {
       continue
     }
     s.count++
-    if (!s.unsubscribe.url && u.url) s.unsubscribe = { ...s.unsubscribe, url: u.url }
-    if (!s.unsubscribe.mailto && u.mailto) s.unsubscribe = { ...s.unsubscribe, mailto: u.mailto }
+    if (!s.unsubscribe.url && u.url) {
+      s.unsubscribe = { ...s.unsubscribe, url: u.url }
+    }
+    if (!s.unsubscribe.mailto && u.mailto) {
+      s.unsubscribe = { ...s.unsubscribe, mailto: u.mailto }
+    }
   }
   return [...map.values()].sort((a, b) => b.count - a.count || b.latestDate - a.latestDate)
 }
@@ -82,7 +90,9 @@ const SECOND_LEVEL = new Set([
 /** アドレスのドメインからサービスを決める。サブドメインは取り除く */
 export function serviceOf(address: string): string {
   const at = address.lastIndexOf('@')
-  if (at < 0) return address
+  if (at < 0) {
+    return address
+  }
   const labels = address
     .slice(at + 1)
     .toLowerCase()
@@ -107,7 +117,9 @@ export function groupByService(mails: Mail[], top: number): Service[] {
   }
   const all = [...map].map(([service, ms]) => ({ service, count: ms.length, senders: groupBySender(ms) }))
   all.sort((a, b) => b.count - a.count || a.service.localeCompare(b.service))
-  if (all.length <= top) return all
+  if (all.length <= top) {
+    return all
+  }
   const rest = all.slice(top)
   const restMails = mails.filter((m) => rest.some((r) => r.service === serviceOf(parseFrom(m.from).address)))
   return [

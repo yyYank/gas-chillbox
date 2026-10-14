@@ -18,7 +18,9 @@ export const DEFAULT_SIGNUP_RULES = [
 /** 件名にどれかの言葉を含むメールを探す Gmail の検索式。言葉がなければ空 */
 export function signupQuery(rules: string[]): string {
   const words = rules.map((r) => r.replace(/"/g, '').trim()).filter(Boolean)
-  if (words.length === 0) return ''
+  if (words.length === 0) {
+    return ''
+  }
   return `subject:(${words.map((w) => `"${w}"`).join(' OR ')})`
 }
 
@@ -39,9 +41,11 @@ export function groupSignups(mails: Mail[]): Signup[] {
   for (const m of [...mails].sort((a, b) => a.date - b.date)) {
     const service = serviceOf(parseFrom(m.from).address)
     const s = map.get(service)
-    if (s) s.count++
-    else
+    if (s) {
+      s.count++
+    } else {
       map.set(service, { service, name: parseFrom(m.from).name, first: m.date, count: 1, subject: m.subject })
+    }
   }
   return [...map.values()].sort((a, b) => b.first - a.first)
 }

@@ -61,7 +61,9 @@ describe('stepFontScale', () => {
 
   it('何度押しても小数の誤差が積もらない', () => {
     let x = 1
-    for (let i = 0; i < 5; i++) x = stepFontScale(x, 1)
+    for (let i = 0; i < 5; i++) {
+      x = stepFontScale(x, 1)
+    }
     expect(x).toBe(1.5)
   })
 

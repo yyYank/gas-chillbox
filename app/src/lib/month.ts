@@ -17,7 +17,9 @@ export function monthRange(today: number, offset: number): { start: number; days
 /** ルールに言葉を足す。前後の空白は取り、空やすでにある言葉は足さない */
 export function addRule(rules: string[], word: string): string[] {
   const w = word.trim()
-  if (!w || rules.includes(w)) return rules
+  if (!w || rules.includes(w)) {
+    return rules
+  }
   return [...rules, w]
 }
 
